@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi Restaurante · Prototipo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#f1f5f3;--cd:#fff;--tx:#12211d;--mu:#5c6e68;--ac:#0b6b58;--ac2:#dcefe9;--on:#fff;--hd:#0b4f41;--ye:#f5b800;--wa:#a86a00;--ok:#1f7a45;--bd:#dbe3df;--sh:0 1px 2px #0001,0 6px 16px #0000000d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1614;--cd:#17221f;--tx:#e9f2ee;--mu:#9bb1a9;--ac:#2fb596;--ac2:#1b3a33;--on:#062018;--hd:#10251f;--wa:#f2b705;--ok:#58c785;--bd:#27382f}}
+:root[data-theme="dark"]{--bg:#0e1614;--cd:#17221f;--tx:#e9f2ee;--mu:#9bb1a9;--ac:#2fb596;--ac2:#1b3a33;--on:#062018;--hd:#10251f;--wa:#f2b705;--ok:#58c785;--bd:#27382f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 'Bricolage Grotesque',system-ui,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--bd);background:var(--cd);border-radius:10px;padding:8px 14px;min-height:42px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--ye);outline-offset:2px}
+button.p{background:var(--ac);color:var(--on);border-color:var(--ac);font-weight:700}
+button:disabled{opacity:.45}button.g{border-color:transparent;color:var(--mu);background:transparent}
+input,select,textarea{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:9px 10px;width:100%;min-height:42px}
+.top{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--hd);color:#fff;border-bottom:3px solid var(--ac)}
+.top b{font-size:18px;font-weight:800;flex:1}.top button{background:transparent;color:#fff;border-color:currentColor;min-height:36px;padding:4px 12px}
+.wrap{max-width:1000px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs button{white-space:nowrap;border-radius:99px;flex:none}
+.tabs button.on{background:var(--tx);color:var(--bg);border-color:var(--tx);font-weight:700}
+.ctabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:8px 0}
+.ctabs button{border-color:var(--c);color:var(--c);font-weight:600}
+.ctabs button.on{background:var(--c);color:#fff;border-color:var(--c)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.item{position:relative;text-align:left;padding:0;overflow:hidden;border-radius:14px;box-shadow:var(--sh);display:flex;flex-direction:column;min-height:0}
+.item:active{transform:scale(.97)}
+.ph{height:84px;display:grid;place-items:center;font-size:38px;background:color-mix(in srgb,var(--c) 18%,var(--cd))}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.item strong{padding:8px 10px 0;font-size:15px;line-height:1.2}
+.item span{padding:2px 10px 10px;font-weight:800}
+.qty{position:absolute;top:6px;right:6px;background:var(--ac);color:var(--on);border-radius:99px;min-width:26px;height:26px;display:grid;place-items:center;font:700 14px system-ui;font-style:normal;box-shadow:var(--sh)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px;align-items:start}
+.two>div:last-child{position:sticky;top:12px}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--sh)}
+.mesas{display:flex;gap:8px;overflow-x:auto;margin-bottom:8px;scrollbar-width:none}.mesas button{flex:none}
+.mesas button.on{background:var(--ye);color:#000;border-color:var(--ye);font-weight:800}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 0}
+.tag{font-size:13px;padding:3px 10px;border-radius:99px;background:var(--ac2);font-weight:600}
+.col3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+.kc{--k:#2b7fd0}.kc.prep{--k:#d9a400}.kc.listo{--k:#2a8a56}
+.kc h3{margin:0 0 10px;padding-bottom:6px;border-bottom:3px solid var(--k)}
+.kc .card{border-left:5px solid var(--k)}.kc .card button.p{min-height:48px;font-size:16px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}table{border-collapse:collapse;width:100%;min-width:560px}
+td,th{padding:6px 4px;text-align:left;border-bottom:1px solid var(--bd)}th{color:var(--mu);font-weight:600;white-space:nowrap}
+.thumb{display:grid;place-items:center;width:56px;height:56px;border-radius:12px;background:var(--ac2);overflow:hidden;cursor:pointer;font-size:22px}.thumb img{width:100%;height:100%;object-fit:cover}
+.bar{height:8px;background:var(--ac);border-radius:4px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.kpi .card{margin:0}.kpi b{display:block;font-size:26px;font-weight:800}
+.hint{color:var(--mu);font-size:14px}.late{color:var(--wa);font-weight:700}
+.login{max-width:440px;margin:6vh auto;padding:16px}
+.login h1{font-size:36px;font-weight:800;margin:0 0 6px}
+.login button{display:flex;gap:14px;align-items:center;width:100%;text-align:left;margin-bottom:10px;padding:16px;border-radius:14px;box-shadow:var(--sh)}
+.ic{font-size:30px;width:52px;height:52px;display:grid;place-items:center;border-radius:14px;background:var(--ac2)}
+.mbar{display:none}
+.two>div,.col3>div,.wrap{min-width:0}html,body{max-width:100%}body{overflow-x:clip}
+@media(max-width:760px){
+ .wrap{padding:12px 12px 96px}.two,.col3{grid-template-columns:minmax(0,1fr)}.two>div:last-child{position:static}
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .mbar{display:flex;position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:20;justify-content:space-between;align-items:center;gap:8px;background:var(--tx);color:var(--bg);padding:8px 8px 8px 16px;border-radius:16px;box-shadow:0 6px 24px #0005}
+ .mbar button{background:var(--ac);color:var(--on);border:0;font-weight:700}
+ .top b{font-size:16px}.login{margin:3vh auto}
+ .pt,.pt tbody{display:block;min-width:0}.pt tr:first-child{display:none}
+ .pt tr{display:grid;grid-template-columns:60px minmax(0,1fr) minmax(0,1fr) 44px;gap:8px;padding:12px 0;border-bottom:1px solid var(--bd);grid-template-areas:"f n n n" "f c p a"}
+ .pt td{border:0;padding:0}.pt td:nth-child(1){grid-area:f}.pt td:nth-child(2){grid-area:n}.pt td:nth-child(3){grid-area:c}.pt td:nth-child(4){grid-area:p}.pt td:nth-child(5){grid-area:a;align-self:center}
+}
+</style></head><body><div id="app"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const DEF=['Desayunos','Almuerzos','Postres','Helados','Jugos','Gaseosas'];let CATS=DEF;
+const SEED=[['Pan con huevo y café','Desayunos',8],['Pan con chicharrón','Desayunos',12],['Tamal con jugo','Desayunos',10],['Menú del día','Almuerzos',14],['Lomo saltado','Almuerzos',22],['Arroz con pollo','Almuerzos',18],['Ají de gallina','Almuerzos',17],['Gelatina','Postres',4],['Mazamorra morada','Postres',5],['Torta de chocolate','Postres',9],['Helado de vainilla','Helados',5],['Helado de lúcuma','Helados',6],['Copa de helado','Helados',10],['Jugo de naranja','Jugos',6],['Jugo de papaya','Jugos',6],['Chicha morada','Jugos',5],['Inca Kola 500ml','Gaseosas',4],['Coca-Cola 500ml','Gaseosas',4]];
+const K='resto_proto_v1';
+let S=load(),user=null,cat=CATS[0],mesa=1,cart={},nota='',atab='prod',cli='',hq='',hd1='',hd2='';
+function load(){try{const s=JSON.parse(localStorage.getItem(K));if(s&&s.products){s.cats=s.cats||[...DEF];return s}}catch(e){}
+ return {cats:[...DEF],products:SEED.map((p,i)=>({id:i+1,n:p[0],c:p[1],p:p[2],a:true})),orders:[],seq:1,pid:SEED.length+1}}
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){alert('No se pudo guardar: la memoria del navegador está llena. Quita algunas fotos o exporta y borra pedidos.')}}
+CATS=S.cats;
+window.addEventListener('storage',e=>{if(e.key===K){S=load();CATS=S.cats;draw()}});
+const $=s=>document.getElementById(s),money=n=>'S/ '+Number(n).toFixed(2);
+const mm=ms=>{const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const hhmm=t=>new Date(t).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+const fec=t=>new Date(t).toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric'});
+const dkey=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const PAL=['#d9650f','#2a8a56','#c93a7a','#2b7fd0','#a8740a','#6f52c0','#12859a','#b94a28'];
+const EMO={Desayunos:'🥐',Almuerzos:'🍛',Postres:'🍰',Helados:'🍨',Jugos:'🍹',Gaseosas:'🥤'};
+const ccol=c=>PAL[Math.max(0,CATS.indexOf(c))%PAL.length],emo=c=>EMO[c]||'🍽️';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const total=o=>o.items.reduce((a,i)=>a+i.p*i.q,0);
+
+function draw(){
+ if(!user){$('app').innerHTML=`<div class="login"><h1>Mi Restaurante</h1><p class="hint">Prototipo: elige un perfil para ver su pantalla. En la versión real cada persona entra con su usuario y contraseña.</p>
+ <button onclick="login('mozo')"><span class="ic">🛎️</span><span><b>Mozo</b><br><span class="hint">Toma pedidos por mesa</span></span></button>
+ <button onclick="login('cocina')"><span class="ic">👨‍🍳</span><span><b>Cocina</b><br><span class="hint">Recibe y prepara pedidos</span></span></button>
+ <button onclick="login('admin')"><span class="ic">📊</span><span><b>Administrador</b><br><span class="hint">Productos, precios y reportes</span></span></button></div>`;return}
+ const names={mozo:'Mozo',cocina:'Cocina',admin:'Administrador'};
+ $('app').innerHTML=`<div class="top"><b>Mi Restaurante · ${names[user]}</b><button onclick="user=null;draw()">Cambiar perfil</button></div><div class="wrap">${user=='mozo'?mozo():user=='cocina'?cocina():admin()}</div>`;
+ document.querySelectorAll('.tabs button.on').forEach(b=>b.scrollIntoView({inline:'center',block:'nearest'}));
+}
+function login(r){user=r;draw()}
+
+/* MOZO */
+function mozo(){
+ if(!CATS.includes(cat))cat=CATS[0];
+ const prods=S.products.filter(p=>p.a&&p.c==cat);
+ const lines=Object.entries(cart).map(([id,q])=>{const p=S.products.find(x=>x.id==id);return {p,q}});
+ const tot=lines.reduce((a,l)=>a+l.p.p*l.q,0);
+ const mine=S.orders.filter(o=>o.st!='entregado').sort((a,b)=>a.t0-b.t0);
+ return `<div class="mesas">${[1,2,3,4,5,6,7,8].map(n=>`<button class="${n==mesa?'on':''}" onclick="mesa=${n};draw()">Mesa ${n}</button>`).join('')}</div>
+ <div class="two"><div><div class="tabs ctabs">${CATS.map((c,i)=>`<button class="${c==cat?'on':''}" style="--c:${ccol(c)}" onclick="cat=CATS[${i}];draw()">${esc(c)}</button>`).join('')}</div>
+ <div class="grid">${prods.map(p=>`<button class="item" style="--c:${ccol(p.c)}" onclick="add(${p.id})"><div class="ph">${p.img?`<img src="${p.img}" alt="">`:emo(p.c)}</div><strong>${esc(p.n)}</strong><span>${money(p.p)}</span>${cart[p.id]?`<i class="qty">${cart[p.id]}</i>`:''}</button>`).join('')||'<p class="hint">No hay productos activos en esta categoría. Agrégalos desde Administrador.</p>'}</div></div>
+ <div><div class="card" id="cart"><b>Pedido · Mesa ${mesa}</b>
+ ${lines.map(l=>`<div class="row"><span>${l.q} × ${esc(l.p.n)}</span><span><button class="g" onclick="add(${l.p.id},-1)">−</button><button class="g" onclick="add(${l.p.id})">+</button></span></div>`).join('')||'<p class="hint">Toca un producto para agregarlo.</p>'}
+ <input placeholder="Nombre del cliente (opcional)" value="${esc(cli)}" oninput="cli=this.value" style="margin-bottom:6px">
+ <textarea rows="2" placeholder="Observaciones (sin azúcar, para llevar…)" oninput="nota=this.value">${esc(nota)}</textarea>
+ <div class="row"><b>Total</b><b>${money(tot)}</b></div>
+ <button class="p" style="width:100%" ${lines.length?'':'disabled'} onclick="enviar()">Enviar a cocina</button></div></div></div>
+ <h3>Pedidos en curso</h3>${mine.map(o=>`<div class="card row"><span><b>Mesa ${o.mesa}${o.cliente?' · '+esc(o.cliente):''}</b> · ${o.items.map(i=>i.q+' '+esc(i.n)).join(', ')}${o.nota?` <i>(${esc(o.nota)})</i>`:''}</span>
+ <span>${o.st=='listo'?`<button class="p" onclick="avanzar(${o.id})">Marcar entregado</button>`:`<span class="tag">${o.st=='nuevo'?'En espera':'Preparando'}</span>`}</span></div>`).join('')||'<p class="hint">Sin pedidos activos.</p>'}${lines.length?`<div class="mbar"><span><b>${lines.reduce((a,l)=>a+l.q,0)}</b> productos · <b>${money(tot)}</b></span><button onclick="document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Ver pedido</button></div>`:''}`;
+}
+function add(id,d=1){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];draw()}
+function enviar(){const items=Object.entries(cart).map(([id,q])=>{const p=S.products.find(x=>x.id==id);return {n:p.n,p:p.p,q}});
+ S.orders.push({id:S.seq++,mesa,cliente:cli.trim(),items,nota,st:'nuevo',t0:Date.now()});save();cart={};nota='';cli='';draw()}
+function avanzar(id){const o=S.orders.find(x=>x.id==id),t=Date.now();
+ if(o.st=='nuevo'){o.st='prep';o.t1=t}else if(o.st=='prep'){o.st='listo';o.t2=t}else if(o.st=='listo'){o.st='entregado';o.t3=t}
+ save();draw()}
+
+/* COCINA */
+function cocina(){
+ const col=(st,t,btn)=>{const os=S.orders.filter(o=>o.st==st).sort((a,b)=>a.t0-b.t0);
+ return `<div class="kc ${st}"><h3>${t} (${os.length})</h3>${os.map(o=>{const ms=Date.now()-(st=='nuevo'?o.t0:st=='prep'?o.t1:o.t2);
+ return `<div class="card"><div class="row"><b>Mesa ${o.mesa}${o.cliente?' · '+esc(o.cliente):''}</b><span class="${ms>600000&&st!='listo'?'late':'hint'}">${mm(ms)} · llegó ${hhmm(o.t0)}</span></div>
+ ${o.items.map(i=>`<div>${i.q} × ${esc(i.n)}</div>`).join('')}${o.nota?`<div class="hint">Nota: ${esc(o.nota)}</div>`:''}
+ ${btn?`<button class="p" style="margin-top:8px;width:100%" onclick="avanzar(${o.id})">${btn}</button>`:''}</div>`}).join('')||'<p class="hint">Nada por aquí.</p>'}</div>`};
+ return `<div class="col3">${col('nuevo','Nuevos','Empezar a preparar')}${col('prep','Preparando','Marcar listo')}${col('listo','Listos para entregar','')}</div><p class="hint">El cronómetro se pone en ámbar pasados 10 minutos.</p>`;
+}
+setInterval(()=>{if(user=='cocina')draw()},15000);
+
+/* ADMIN */
+function admin(){
+ return `<div class="tabs">${[['prod','Productos y precios'],['rep','Reportes'],['hist','Historial']].map(t=>`<button class="${atab==t[0]?'on':''}" onclick="atab='${t[0]}';draw()">${t[1]}</button>`).join('')}</div>`+(atab=='prod'?prodTab():atab=='rep'?repTab():histTab());
+}
+function prodTab(){
+ return `<div class="card"><b>Agregar producto</b><div class="row" style="flex-wrap:wrap"><input id="nn" placeholder="Nombre" style="flex:2;min-width:150px"><select id="nc" style="flex:1;min-width:110px">${CATS.map(c=>`<option>${esc(c)}</option>`).join('')}</select><input id="np" type="number" step="0.5" min="0" placeholder="Precio" style="flex:1;min-width:80px"><button class="p" onclick="addProd()">Agregar</button></div></div>
+ ${catCard()}
+ <div class="card tw"><table class="pt"><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Precio (S/)</th><th>Activo</th></tr>
+ ${S.products.map(p=>`<tr><td><label class="thumb">${p.img?`<img src="${p.img}" alt="">`:'📷'}<input type="file" accept="image/*" hidden onchange="foto(${p.id},this.files[0])"></label>${p.img?`<button class="g" style="min-height:24px;padding:0" onclick="upd(${p.id},'img','');draw()">Quitar</button>`:''}</td><td><input value="${esc(p.n)}" onchange="upd(${p.id},'n',this.value)"></td><td><select onchange="upd(${p.id},'c',this.value)">${CATS.map(c=>`<option ${c==p.c?'selected':''}>${esc(c)}</option>`).join('')}</select></td><td><input type="number" step="0.5" min="0" value="${p.p}" onchange="upd(${p.id},'p',+this.value)"></td><td><input type="checkbox" ${p.a?'checked':''} onchange="upd(${p.id},'a',this.checked)" style="width:auto"></td></tr>`).join('')}</table></div>
+ <p class="hint">En vez de borrar, desactiva un producto: deja de aparecer al mozo pero se conserva el historial de ventas.</p>`;
+}
+function catCard(){
+ return `<div class="card"><b>Categorías</b><p class="hint" style="margin:4px 0 8px">Cambia el nombre, agrega nuevas o elimina las que no tengan productos.</p>
+ ${CATS.map((c,i)=>`<div class="row"><input value="${esc(c)}" onchange="renCat(${i},this.value)"><span class="hint" style="white-space:nowrap">${S.products.filter(p=>p.c==c).length} prod.</span><button class="g" onclick="delCat(${i})">Eliminar</button></div>`).join('')}
+ <div class="row"><input id="ncat" placeholder="Nueva categoría (ej. Entradas, Cafés)"><button class="p" style="white-space:nowrap" onclick="addCat()">Agregar categoría</button></div></div>`}
+function addCat(){const v=$('ncat').value.trim();if(!v)return;
+ if(CATS.some(c=>c.toLowerCase()==v.toLowerCase()))return alert('Esa categoría ya existe.');
+ S.cats.push(v);save();draw()}
+function renCat(i,v){v=v.trim();const old=CATS[i];
+ if(!v||CATS.some((c,j)=>j!=i&&c.toLowerCase()==v.toLowerCase())){alert('Escribe un nombre que no esté repetido.');return draw()}
+ S.products.forEach(p=>{if(p.c==old)p.c=v});S.cats[i]=v;if(cat==old)cat=v;save();draw()}
+function delCat(i){const old=CATS[i],n=S.products.filter(p=>p.c==old).length;
+ if(n)return alert('"'+old+'" tiene '+n+' productos. Muévelos a otra categoría primero.');
+ S.cats.splice(i,1);if(cat==old)cat=CATS[0];save();draw()}
+function foto(id,f){if(!f)return;const im=new Image(),u=URL.createObjectURL(f);
+ im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);S.products.find(x=>x.id==id).img=c.toDataURL('image/jpeg',.72);save();draw()};im.src=u}
+function addProd(){const n=$('nn').value.trim(),p=parseFloat($('np').value);if(!n||isNaN(p))return alert('Escribe nombre y precio.');
+ S.products.push({id:S.pid++,n,c:$('nc').value,p,a:true});save();draw()}
+function upd(id,k,v){S.products.find(x=>x.id==id)[k]=v;save();if(k=='a'||k=='c')draw()}
+function repTab(){
+ const done=S.orders.filter(o=>o.st=='entregado'),avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+ const vent=S.orders.reduce((a,o)=>a+total(o),0);
+ const by={};S.orders.forEach(o=>o.items.forEach(i=>by[i.n]=(by[i.n]||0)+i.q));
+ const top=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,6),mx=top.length?top[0][1]:1;
+ return `<div class="kpi"><div class="card"><b>${money(vent)}</b><span class="hint">Ventas registradas</span></div><div class="card"><b>${S.orders.length}</b><span class="hint">Pedidos</span></div>
+ <div class="card"><b>${mm(avg(S.orders.filter(o=>o.t1).map(o=>o.t1-o.t0)))}</b><span class="hint">Espera hasta empezar</span></div>
+ <div class="card"><b>${mm(avg(S.orders.filter(o=>o.t2).map(o=>o.t2-o.t1)))}</b><span class="hint">Tiempo de preparación</span></div>
+ <div class="card"><b>${mm(avg(done.map(o=>o.t3-o.t0)))}</b><span class="hint">Pedido hasta entrega</span></div></div>
+ <div class="card"><b>Más vendidos</b>${top.map(t=>`<div style="margin-top:8px"><div class="row"><span>${esc(t[0])}</span><span>${t[1]}</span></div><div class="bar" style="width:${t[1]/mx*100}%"></div></div>`).join('')||'<p class="hint">Aún no hay ventas. Toma pedidos como mozo o carga datos de ejemplo.</p>'}</div>
+ <button onclick="demo()">Cargar datos de ejemplo</button> <button class="g" onclick="if(confirm('¿Borrar todos los pedidos?')){S.orders=[];save();draw()}">Borrar pedidos</button>`;
+}
+function demo(){const act=S.products.filter(p=>p.a),now=Date.now();
+ for(let i=0;i<14;i++){const t0=now-(i+1)*25*60000,n=1+Math.floor(Math.random()*3),items=[];
+  for(let j=0;j<n;j++){const p=act[Math.floor(Math.random()*act.length)];items.push({n:p.n,p:p.p,q:1+Math.floor(Math.random()*2)})}
+  const t1=t0+(1+Math.random()*3)*60000,t2=t1+(4+Math.random()*10)*60000;
+  S.orders.push({id:S.seq++,mesa:1+Math.floor(Math.random()*8),items,nota:'',st:'entregado',t0,t1,t2,t3:t2+(1+Math.random()*2)*60000})}
+ save();draw()}
+function histList(){
+ let os=[...S.orders].sort((a,b)=>b.t0-a.t0);
+ if(hd1)os=os.filter(o=>dkey(o.t0)>=hd1);if(hd2)os=os.filter(o=>dkey(o.t0)<=hd2);
+ const q=hq.trim().toLowerCase();if(q)os=os.filter(o=>(o.cliente||'').toLowerCase().includes(q));
+ return os}
+function histTab(){
+ const os=histList(),tot=os.reduce((a,o)=>a+total(o),0);
+ return `<div class="card"><div class="row" style="flex-wrap:wrap;align-items:flex-end">
+ <label style="flex:1;min-width:130px"><span class="hint">Desde</span><input type="date" value="${hd1}" onchange="hd1=this.value;draw()"></label>
+ <label style="flex:1;min-width:130px"><span class="hint">Hasta</span><input type="date" value="${hd2}" onchange="hd2=this.value;draw()"></label>
+ <label style="flex:2;min-width:160px"><span class="hint">Buscar cliente</span><input value="${esc(hq)}" placeholder="Nombre y Enter" onchange="hq=this.value;draw()"></label>
+ <button onclick="hd1=hd2=hq='';draw()">Limpiar</button></div>
+ <p class="hint" style="margin:8px 0">${os.length} pedidos · ${money(tot)}</p>
+ <button class="p" onclick="exportar()">Exportar a Excel</button> <button class="g" onclick="borrarMostrados()">Borrar los entregados que se muestran</button>
+ <p class="hint" style="margin:8px 0 0">Exporta primero y luego borra: el Excel se genera con los pedidos que ves según los filtros. Los pedidos aún sin entregar no se borran.</p></div>
+ <div class="card tw"><table><tr><th>Pedido</th><th>Fecha</th><th>Hora</th><th>Mesa</th><th>Cliente</th><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Monto</th><th>Estado</th><th>Prep.</th></tr>${os.map(o=>o.items.map((it,k)=>`<tr><td>${o.id}</td><td>${fec(o.t0)}</td><td>${hhmm(o.t0)}</td><td>${o.mesa}</td><td>${esc(o.cliente||'—')}</td><td>${esc(it.n)}</td><td>${it.q}</td><td>${money(it.p)}</td><td>${money(it.p*it.q)}</td><td>${o.st}</td><td>${o.t2?mm(o.t2-o.t1):'—'}</td></tr>`).join('')).join('')||'<tr><td colspan="11" class="hint">No hay pedidos con esos filtros.</td></tr>'}</table></div>`;
+}
+async function exportar(){
+ const os=histList();if(!os.length)return alert('No hay pedidos para exportar.');
+ const head=['Pedido','Fecha','Hora','Mesa','Cliente','Producto','Cantidad','Precio unitario','Monto','Estado','Preparación (min)'];
+ const rows=[head];let g=0;
+ os.forEach(o=>o.items.forEach(i=>{g+=i.p*i.q;rows.push([o.id,fec(o.t0),hhmm(o.t0),o.mesa,o.cliente||'',i.n,i.q,i.p,i.p*i.q,o.st,o.t2?Math.round((o.t2-o.t1)/6000)/10:''])}));
+  const name='pedidos_'+dkey(Date.now());let data,fn;
+ if(window.XLSX){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[8,12,10,6,18,28,9,15,10,12,16].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Pedidos');data=XLSX.write(wb,{type:'array',bookType:'xlsx'});fn=name+'.xlsx'}
+ else{data='\ufeff'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');fn=name+'.csv'}
+ let dl=null;try{dl=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){}
+ if(dl){try{await dl.save({filename:fn,data})}catch(e){if(e&&e.code!='declined')alert('No se pudo guardar el archivo.')}return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data]));a.download=fn;document.body.appendChild(a);a.click();a.remove()}
+function borrarMostrados(){
+ const ids=new Set(histList().filter(o=>o.st=='entregado').map(o=>o.id));
+ if(!ids.size)return alert('No hay pedidos entregados en pantalla para borrar.');
+ if(!confirm('Se borrarán '+ids.size+' pedidos entregados. Esta acción no se puede deshacer. ¿Ya exportaste a Excel?'))return;
+ S.orders=S.orders.filter(o=>!ids.has(o.id));save();draw()}
+draw();
+</script></body></html>
