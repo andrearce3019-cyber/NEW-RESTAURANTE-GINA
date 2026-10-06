@@ -82,6 +82,7 @@ const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 /* ====================================================================== */
 const ONLINE=/^https:\/\//.test(SUPA_URL);
 let vista='admin';const rv=()=>user=='admin'?vista:user;
+let actx=null,primera=true,vNuevo=new Set(),vListo=new Set(),swReg=null,wl=null,avisosOn=!!(window.Notification&&Notification.permission=='granted');
 let sb=null,me=null,snap={},cfgSnap='',cfgVer=0,ver=0,busy=false,tm=null,ch=null;
 const K='resto_proto_v1';
 let S=load(),user=null,cat=CATS[0],mesa=1,cart={},nota='',atab='prod',cli='',hq='',hd1='',hd2='';
@@ -112,11 +113,32 @@ async function ingresar(){const u=$('lu').value.trim().toLowerCase(),pw=$('lp').
  if(error)return alert('Usuario o contraseña incorrectos.');await enter(data.user)}
 async function enter(u){const {data}=await sb.from('perfiles').select('rol').eq('id',u.id).maybeSingle();
  if(!data){await sb.auth.signOut();alert('Este usuario no tiene un perfil asignado.');return draw()}
- me=u;user=data.rol;await pull();clearInterval(tm);tm=setInterval(pull,3000);
+ me=u;user=data.rol;primera=true;vNuevo.clear();vListo.clear();regSW();pantalla();await pull();clearInterval(tm);tm=setInterval(pull,3000);
  if(ch)sb.removeChannel(ch);ch=sb.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'orders'},pull).subscribe();draw()}
 async function salir(){clearInterval(tm);if(ch)sb.removeChannel(ch);await sb.auth.signOut();me=null;user=null;vista='admin';S.orders=[];snap={};draw()}
 async function cambiarClave(){const p=prompt('Nueva contraseña (mínimo 6 caracteres):');if(!p)return;
  const {error}=await sb.auth.updateUser({password:p});alert(error?'No se pudo cambiar: '+error.message:'Contraseña cambiada.')}
+/* ===== AVISOS: sonido, vibración y notificación ===== */
+function regSW(){try{if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').then(x=>swReg=x).catch(()=>{})}catch(e){}}
+function sonar(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();const t=actx.currentTime;
+ [0,.25,.5].forEach((d,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.value=i==1?1175:880;
+  g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.5,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.22);
+  o.connect(g).connect(actx.destination);o.start(t+d);o.stop(t+d+.25)})}catch(e){}
+ try{navigator.vibrate&&navigator.vibrate([300,150,300,150,300])}catch(e){}}
+function avisar(tit,txt){sonar();
+ try{if(window.Notification&&Notification.permission=='granted'&&swReg)swReg.showNotification(tit,{body:txt,tag:'r'+Date.now()+Math.random(),renotify:true,vibrate:[300,150,300]})}catch(e){}}
+function avisos(){const v=rv(),nu=S.orders.filter(o=>o.st=='nuevo'),li=S.orders.filter(o=>o.st=='listo');
+ if(!primera){
+  if(v=='cocina')nu.filter(o=>!vNuevo.has(o.id)).forEach(o=>avisar('🔔 Nuevo pedido · Mesa '+o.mesa,o.items.map(i=>i.q+' '+i.n).join(', ')));
+  if(v=='mozo')li.filter(o=>!vListo.has(o.id)).forEach(o=>avisar('✅ Pedido listo · Mesa '+o.mesa,o.items.map(i=>i.q+' '+i.n).join(', ')+' — listo para entregar'))}
+ nu.forEach(o=>vNuevo.add(o.id));li.forEach(o=>vListo.add(o.id));primera=false}
+async function activarAvisos(){sonar();regSW();
+ try{if(window.Notification&&Notification.permission!='granted'){const x=await Notification.requestPermission();
+  if(x!='granted')alert('Las notificaciones quedaron bloqueadas. Igual sonará mientras la página esté abierta. Puedes permitirlas en la configuración del navegador.')}}catch(e){}
+ avisosOn=true;pantalla();draw()}
+async function pantalla(){try{if('wakeLock' in navigator&&document.visibilityState=='visible'&&!(wl&&!wl.released))wl=await navigator.wakeLock.request('screen')}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible'&&me){pantalla();pull()}});
+document.addEventListener('pointerdown',()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(e){}},{passive:true});
 async function push(){if(!sb||!me)return;busy=true;
  try{const d={cats:S.cats,products:S.products,pid:S.pid},cfg=JSON.stringify(d);
   if(user=='admin'&&cfg!==cfgSnap){const v=Date.now(),{error}=await sb.from('config').upsert({id:1,ver:v,data:d});if(error)throw error;cfgSnap=cfg;cfgVer=v}
@@ -133,7 +155,7 @@ async function pull(){if(!sb||!me||busy)return;const v=ver;
   if(c.data){if(c.data.ver!==cfgVer){const x=await sb.from('config').select('ver,data').eq('id',1).single();if(x.error||v!=ver)return;
     const d=x.data.data;S.cats=d.cats;CATS=S.cats;S.products=d.products;S.pid=d.pid;cfgSnap=JSON.stringify(d);cfgVer=x.data.ver}}
   else if(user=='admin'){S.cats=[...DEF];CATS=S.cats;S.products=SEED.map((q,i)=>({id:i+1,n:q[0],c:q[1],p:q[2],a:true}));S.pid=SEED.length+1;await push()}
-  S.orders=o.data.map(x=>({...x.data,num:x.num})).reverse();snap={};S.orders.forEach(x=>snap[x.id]=JSON.stringify(x));
+  S.orders=o.data.map(x=>({...x.data,num:x.num})).reverse();snap={};S.orders.forEach(x=>snap[x.id]=JSON.stringify(x));avisos();
   if(JSON.stringify([S.cats,S.products,S.orders])!==before&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))draw()}catch(e){}}
 function draw(){
  if(!user&&ONLINE){$('app').innerHTML=loginForm();return}
@@ -142,7 +164,7 @@ function draw(){
  <button onclick="login('cocina')"><span class="ic">👨‍🍳</span><span><b>Cocina</b><br><span class="hint">Recibe y prepara pedidos</span></span></button>
  <button onclick="login('admin')"><span class="ic">📊</span><span><b>Administrador</b><br><span class="hint">Productos, precios y reportes</span></span></button></div>`;return}
  const names={mozo:'Mozo',cocina:'Cocina',admin:'Administrador'};
- $('app').innerHTML=`<div class="top"><b>Mi Restaurante · ${names[rv()]}</b>${user=='admin'?`<select aria-label="Ir a" onchange="vista=this.value;draw()">${[['admin','Administrador'],['mozo','Mozo'],['cocina','Cocina']].map(o=>`<option value="${o[0]}" ${vista==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:''}${ONLINE?`${user=='admin'?`<button onclick="cambiarClave()">Mi clave</button>`:''}<button onclick="salir()">Salir</button>`:`<button onclick="user=null;draw()">Cambiar perfil</button>`}</div><div class="wrap">${rv()=='mozo'?mozo():rv()=='cocina'?cocina():admin()}</div>`;
+ $('app').innerHTML=`<div class="top"><b>Mi Restaurante · ${names[rv()]}</b>${user=='admin'?`<select aria-label="Ir a" onchange="vista=this.value;draw()">${[['admin','Administrador'],['mozo','Mozo'],['cocina','Cocina']].map(o=>`<option value="${o[0]}" ${vista==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:''}${ONLINE?`${user=='admin'?`<button onclick="cambiarClave()">Mi clave</button>`:''}${avisosOn?'':`<button onclick="activarAvisos()">🔔 Activar avisos</button>`}<button onclick="salir()">Salir</button>`:`<button onclick="user=null;draw()">Cambiar perfil</button>`}</div><div class="wrap">${rv()=='mozo'?mozo():rv()=='cocina'?cocina():admin()}</div>`;
  document.querySelectorAll('.tabs button.on').forEach(b=>b.scrollIntoView({inline:'center',block:'nearest'}));
 }
 function login(r){user=r;draw()}
