@@ -66,6 +66,7 @@ td,th{padding:6px 4px;text-align:left;border-bottom:1px solid var(--bd)}th{color
  .pt tr{display:grid;grid-template-columns:60px minmax(0,1fr) minmax(0,1fr) 44px;gap:8px;padding:12px 0;border-bottom:1px solid var(--bd);grid-template-areas:"f n n n" "f c p a"}
  .pt td{border:0;padding:0}.pt td:nth-child(1){grid-area:f}.pt td:nth-child(2){grid-area:n}.pt td:nth-child(3){grid-area:c}.pt td:nth-child(4){grid-area:p}.pt td:nth-child(5){grid-area:a;align-self:center}
 }
+.top{flex-wrap:wrap}.top select{width:auto;min-height:36px;background:transparent;color:#fff;border-color:#fff9;padding:4px 8px}.top select option{color:#000}
 </style></head><body><div id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -77,6 +78,7 @@ const SUPA_URL='https://urhinovcskzbaknufbnr.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyaGlub3Zjc2t6YmFrbnVmYm5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyOTE3MDAsImV4cCI6MjEwNjg2NzcwMH0.yr9QZmELXin-JiFHmjJS61nW5UuQoSmGxM32KaCUv7o';
 /* ====================================================================== */
 const ONLINE=/^https:\/\//.test(SUPA_URL);
+let vista='admin';const rv=()=>user=='admin'?vista:user;
 let sb=null,me=null,snap={},cfgSnap='',cfgVer=0,ver=0,busy=false,tm=null,ch=null;
 const K='resto_proto_v1';
 let S=load(),user=null,cat=CATS[0],mesa=1,cart={},nota='',atab='prod',cli='',hq='',hd1='',hd2='';
@@ -109,7 +111,7 @@ async function enter(u){const {data}=await sb.from('perfiles').select('rol').eq(
  if(!data){await sb.auth.signOut();alert('Este usuario no tiene un perfil asignado.');return draw()}
  me=u;user=data.rol;await pull();clearInterval(tm);tm=setInterval(pull,3000);
  if(ch)sb.removeChannel(ch);ch=sb.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'orders'},pull).subscribe();draw()}
-async function salir(){clearInterval(tm);if(ch)sb.removeChannel(ch);await sb.auth.signOut();me=null;user=null;S.orders=[];snap={};draw()}
+async function salir(){clearInterval(tm);if(ch)sb.removeChannel(ch);await sb.auth.signOut();me=null;user=null;vista='admin';S.orders=[];snap={};draw()}
 async function cambiarClave(){const p=prompt('Nueva contraseña (mínimo 6 caracteres):');if(!p)return;
  const {error}=await sb.auth.updateUser({password:p});alert(error?'No se pudo cambiar: '+error.message:'Contraseña cambiada.')}
 async function push(){if(!sb||!me)return;busy=true;
@@ -137,7 +139,7 @@ function draw(){
  <button onclick="login('cocina')"><span class="ic">👨‍🍳</span><span><b>Cocina</b><br><span class="hint">Recibe y prepara pedidos</span></span></button>
  <button onclick="login('admin')"><span class="ic">📊</span><span><b>Administrador</b><br><span class="hint">Productos, precios y reportes</span></span></button></div>`;return}
  const names={mozo:'Mozo',cocina:'Cocina',admin:'Administrador'};
- $('app').innerHTML=`<div class="top"><b>Mi Restaurante · ${names[user]}</b>${ONLINE?`<button onclick="cambiarClave()">Mi clave</button><button onclick="salir()">Salir</button>`:`<button onclick="user=null;draw()">Cambiar perfil</button>`}</div><div class="wrap">${user=='mozo'?mozo():user=='cocina'?cocina():admin()}</div>`;
+ $('app').innerHTML=`<div class="top"><b>Mi Restaurante · ${names[rv()]}</b>${user=='admin'?`<select aria-label="Ir a" onchange="vista=this.value;draw()">${[['admin','Administrador'],['mozo','Mozo'],['cocina','Cocina']].map(o=>`<option value="${o[0]}" ${vista==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:''}${ONLINE?`${user=='admin'?`<button onclick="cambiarClave()">Mi clave</button>`:''}<button onclick="salir()">Salir</button>`:`<button onclick="user=null;draw()">Cambiar perfil</button>`}</div><div class="wrap">${rv()=='mozo'?mozo():rv()=='cocina'?cocina():admin()}</div>`;
  document.querySelectorAll('.tabs button.on').forEach(b=>b.scrollIntoView({inline:'center',block:'nearest'}));
 }
 function login(r){user=r;draw()}
@@ -177,7 +179,7 @@ function cocina(){
  ${btn?`<button class="p" style="margin-top:8px;width:100%" onclick="avanzar(${o.id})">${btn}</button>`:''}</div>`}).join('')||'<p class="hint">Nada por aquí.</p>'}</div>`};
  return `<div class="col3">${col('nuevo','Nuevos','Empezar a preparar')}${col('prep','Preparando','Marcar listo')}${col('listo','Listos para entregar','')}</div><p class="hint">El cronómetro se pone en ámbar pasados 10 minutos.</p>`;
 }
-setInterval(()=>{if(user=='cocina')draw()},15000);
+setInterval(()=>{if(rv()=='cocina')draw()},15000);
 
 /* ADMIN */
 function admin(){
