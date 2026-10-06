@@ -40,23 +40,45 @@
                 <label for="password">Contraseña</label>
                 <input type="password" id="password" class="form-control" placeholder="••••••••" required>
             </div>
-            <button type="submit" class="btn-primary">Iniciar Sesión</button>
+            <button type="submit" id="login-btn" class="btn-primary">Iniciar Sesión</button>
         </form>
     </div>
 
     <div id="app" style="display:none;">
-        <!-- El contenido del sistema cargará aquí automáticamente -->
+        <!-- Panel principal del sistema -->
     </div>
 
     <script>
-        // Configuración de Supabase y lógica principal
         const SUPABASE_URL = 'https://urhinovcskzbaknufbnr.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyaGlub3Zjc2t6YmFrbnVmYm5yIiwicm9sZSI6ImFub24iLCJpYXQi5...'; // (Se mantiene tu conexión activa)
-        
-        // Función simulada de inicio de sesión para verificar interfaz
-        function handleLogin(e) {
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyaGlub3Zjc2t6YmFrbnVmYm5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5ODc5NjMsImV4cCI6MjA4NjU2Mzk2M30.K023x2o4qR9PZ3z2k8V-s8v9_l3p2_z1x7v4c5b6n7m';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function handleLogin(e) {
             e.preventDefault();
-            alert('¡Conexión lista! Implementando accesos...');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('login-btn');
+
+            btn.textContent = 'Iniciando sesión...';
+            btn.disabled = true;
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                alert('Error al iniciar sesión: ' + error.message);
+                btn.textContent = 'Iniciar Sesión';
+                btn.disabled = false;
+            } else {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                document.getElementById('app').innerHTML = `
+                    <div style="text-align:center; padding: 40px; background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+                        <h2 style="color: #0d9488; margin-bottom: 10px;">¡Bienvenido al Sistema!</h2>
+                        <p style="color: #64748b;">Sesión iniciada correctamente como: <b>${data.user.email}</b></p>
+                        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">Cerrar Sesión</button>
+                    </div>
+                `;
+            }
         }
     </script>
 </body>
