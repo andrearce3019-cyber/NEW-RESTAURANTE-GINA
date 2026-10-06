@@ -90,7 +90,7 @@ window.addEventListener('storage',e=>{if(e.key===K){S=load();CATS=S.cats;draw()}
 const $=s=>document.getElementById(s),money=n=>'S/ '+Number(n).toFixed(2);
 const mm=ms=>{const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 const hhmm=t=>new Date(t).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
-const idn=o=>String(o.id).slice(-5);
+const idn=o=>o.num!=null?o.num:(ONLINE?'…':String(o.id).slice(-5));
 const fec=t=>new Date(t).toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric'});
 const dkey=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const PAL=['#d9650f','#2a8a56','#c93a7a','#2b7fd0','#a8740a','#6f52c0','#12859a','#b94a28'];
@@ -124,13 +124,13 @@ async function push(){if(!sb||!me)return;busy=true;
   snap=cur}catch(e){alert('No se pudo guardar en línea. Revisa tu conexión e inténtalo de nuevo.')}
  busy=false}
 async function pull(){if(!sb||!me||busy)return;const v=ver;
- try{const [c,o]=await Promise.all([sb.from('config').select('ver').eq('id',1).maybeSingle(),sb.from('orders').select('data').order('id',{ascending:false}).limit(1000)]);
+ try{const [c,o]=await Promise.all([sb.from('config').select('ver').eq('id',1).maybeSingle(),sb.from('orders').select('num,data').order('id',{ascending:false}).limit(1000)]);
   if(c.error||o.error||v!=ver||busy)return;
   const before=JSON.stringify([S.cats,S.products,S.orders]);
   if(c.data){if(c.data.ver!==cfgVer){const x=await sb.from('config').select('ver,data').eq('id',1).single();if(x.error||v!=ver)return;
     const d=x.data.data;S.cats=d.cats;CATS=S.cats;S.products=d.products;S.pid=d.pid;cfgSnap=JSON.stringify(d);cfgVer=x.data.ver}}
   else if(user=='admin'){S.cats=[...DEF];CATS=S.cats;S.products=SEED.map((q,i)=>({id:i+1,n:q[0],c:q[1],p:q[2],a:true}));S.pid=SEED.length+1;await push()}
-  S.orders=o.data.map(x=>x.data).reverse();snap={};S.orders.forEach(x=>snap[x.id]=JSON.stringify(x));
+  S.orders=o.data.map(x=>({...x.data,num:x.num})).reverse();snap={};S.orders.forEach(x=>snap[x.id]=JSON.stringify(x));
   if(JSON.stringify([S.cats,S.products,S.orders])!==before&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))draw()}catch(e){}}
 function draw(){
  if(!user&&ONLINE){$('app').innerHTML=loginForm();return}
