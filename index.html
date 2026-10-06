@@ -183,8 +183,23 @@ function verCuenta(k){const os=S.orders.filter(o=>ck(o)==k).sort((a,b)=>a.t0-b.t
  <p class="hint" style="margin:0 0 8px">Mesa ${o0.mesa}${o0.cliente?' · '+esc(o0.cliente):''} · ${fec(o0.t0)} ${hhmm(o0.t0)}</p>
  <table style="min-width:0"><tr><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Monto</th></tr>${os.map(o=>o.items.map(i=>`<tr><td>${esc(i.n)}<div class="hint">${hhmm(o.t0)} · ${o.dir?'Directo':stTxt[o.st]}</div></td><td>${i.q}</td><td>${money(i.p)}</td><td>${money(i.p*i.q)}</td></tr>`).join('')).join('')}</table>
  ${os.filter(o=>o.nota).map(o=>`<p class="hint">Nota: ${esc(o.nota)}</p>`).join('')}
- <div class="row" style="font-size:22px;margin-top:8px"><b>Total</b><b>${money(tot)}</b></div></div>`;
+ <div class="row" style="font-size:22px;margin-top:8px"><b>Total</b><b>${money(tot)}</b></div>
+ <div class="row" style="flex-wrap:wrap;justify-content:flex-end;margin-top:10px"><button onclick="imprimir(${k})">🖨️ Imprimir</button><button class="p" onclick="whats(${k})">Enviar por WhatsApp</button></div></div>`;
  document.body.appendChild(m)}
+const NEGOCIO='Restaurante Gina';
+function tk(k){const os=S.orders.filter(o=>ck(o)==k).sort((a,b)=>a.t0-b.t0),it=[];
+ os.forEach(o=>o.items.forEach(i=>{const e=it.find(x=>x.n==i.n&&x.p==i.p);e?e.q+=i.q:it.push({...i})}));
+ return {o0:os[0],it,tot:it.reduce((a,i)=>a+i.p*i.q,0)}}
+function whats(k){const {o0,it,tot}=tk(k);let n=prompt('WhatsApp del cliente (ej. 987654321).\nDéjalo vacío para elegir el contacto en WhatsApp:');
+ if(n===null)return;n=n.replace(/\D/g,'');if(n.length==9)n='51'+n;
+ const t=`*${NEGOCIO}*\nPedido ${pnum(o0)} · Mesa ${o0.mesa}${o0.cliente?' · '+o0.cliente:''}\n${fec(o0.t0)} ${hhmm(o0.t0)}\n\n`+it.map(i=>`${i.q} x ${i.n} — ${money(i.p*i.q)}`).join('\n')+`\n\n*Total: ${money(tot)}*\n¡Gracias por su visita!`;
+ window.open('https://wa.me/'+n+'?text='+encodeURIComponent(t),'_blank')}
+function imprimir(k){const {o0,it,tot}=tk(k),w=window.open('','_blank');if(!w)return alert('Permite las ventanas emergentes para poder imprimir.');
+ w.document.write(`<html><head><meta charset="utf-8"><title>Pedido ${pnum(o0)}</title><style>body{font:13px monospace;width:72mm;margin:0 auto;padding:8px;color:#000}h2{text-align:center;margin:4px 0}.r{display:flex;justify-content:space-between;gap:8px}hr{border:0;border-top:1px dashed #000}</style></head><body>
+ <h2>${esc(NEGOCIO)}</h2><div style="text-align:center">Pedido ${pnum(o0)} · Mesa ${o0.mesa}<br>${fec(o0.t0)} ${hhmm(o0.t0)}${o0.cliente?'<br>Cliente: '+esc(o0.cliente):''}</div><hr>
+ ${it.map(i=>`<div class="r"><span>${i.q} x ${esc(i.n)}</span><span>${money(i.p*i.q)}</span></div>`).join('')}<hr>
+ <div class="r"><b>TOTAL</b><b>${money(tot)}</b></div><p style="text-align:center">¡Gracias por su visita!<br><small>No válido como comprobante de pago</small></p></body></html>`);
+ w.document.close();w.focus();setTimeout(()=>w.print(),300)}
 function cerrar(k){const os=S.orders.filter(o=>ck(o)==k&&!o.cerrada),pend=os.filter(o=>o.st!='entregado').length;
  if(!confirm(pend?'Hay '+pend+' envío(s) sin entregar. ¿Cerrar la cuenta igual?':'¿Cerrar la cuenta? La mesa quedará libre.'))return;
  os.forEach(o=>o.cerrada=true);save();draw()}
