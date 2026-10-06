@@ -67,6 +67,9 @@ td,th{padding:6px 4px;text-align:left;border-bottom:1px solid var(--bd)}th{color
  .pt td{border:0;padding:0}.pt td:nth-child(1){grid-area:f}.pt td:nth-child(2){grid-area:n}.pt td:nth-child(3){grid-area:c}.pt td:nth-child(4){grid-area:p}.pt td:nth-child(5){grid-area:a;align-self:center}
 }
 .top{flex-wrap:wrap}.top select{width:auto;min-height:36px;background:transparent;color:#fff;border-color:#fff9;padding:4px 8px}.top select option{color:#000}
+.mesas button.oc:not(.on){border-color:var(--ac);font-weight:700}
+.modal{position:fixed;inset:0;background:#0008;z-index:50;display:grid;place-items:center;padding:16px}
+.sheet{width:min(560px,100%);max-height:85vh;overflow:auto;margin:0}
 </style></head><body><div id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -145,27 +148,51 @@ function draw(){
 function login(r){user=r;draw()}
 
 /* MOZO */
+const stTxt={nuevo:'En espera',prep:'Preparando',listo:'Listo',entregado:'Entregado'};
+const ck=o=>o.cuenta||o.id;
+function cuentasAbiertas(){const g={};S.orders.filter(o=>!o.cerrada).forEach(o=>{(g[ck(o)]=g[ck(o)]||[]).push(o)});
+ return Object.entries(g).map(([k,os])=>({k:+k,os:os.sort((x,y)=>x.t0-y.t0)})).sort((x,y)=>x.os[0].t0-y.os[0].t0)}
+const cuentaDe=m=>cuentasAbiertas().find(c=>c.os[0].mesa==m);
+const pnum=o=>{const r=S.orders.find(x=>x.id==ck(o));return idn(r||o)};
 function mozo(){
  if(!CATS.includes(cat))cat=CATS[0];
  const prods=S.products.filter(p=>p.a&&p.c==cat);
- const lines=Object.entries(cart).map(([id,q])=>{const p=S.products.find(x=>x.id==id);return {p,q}});
- const tot=lines.reduce((a,l)=>a+l.p.p*l.q,0);
- const mine=S.orders.filter(o=>o.st!='entregado').sort((a,b)=>a.t0-b.t0);
- return `<div class="mesas">${[1,2,3,4,5,6,7,8].map(n=>`<button class="${n==mesa?'on':''}" onclick="mesa=${n};draw()">Mesa ${n}</button>`).join('')}</div>
+ const lines=Object.entries(cart).map(([id,q])=>({p:S.products.find(x=>x.id==id),q})).filter(l=>l.p);
+ const tot=lines.reduce((a,l)=>a+l.p.p*l.q,0),ab=cuentaDe(mesa),cs=cuentasAbiertas(),dis=lines.length?'':'disabled';
+ return `<div class="mesas">${[1,2,3,4,5,6,7,8].map(n=>{const oc=cuentaDe(n);return `<button class="${n==mesa?'on':''}${oc?' oc':''}" onclick="mesa=${n};draw()">Mesa ${n}${oc?' •':''}</button>`}).join('')}</div>
  <div class="two"><div><div class="tabs ctabs">${CATS.map((c,i)=>`<button class="${c==cat?'on':''}" style="--c:${ccol(c)}" onclick="cat=CATS[${i}];draw()">${esc(c)}</button>`).join('')}</div>
- <div class="grid">${prods.map(p=>`<button class="item" style="--c:${ccol(p.c)}" onclick="add(${p.id})"><div class="ph">${p.img?`<img src="${p.img}" alt="">`:emo(p.c)}</div><strong>${esc(p.n)}</strong><span>${money(p.p)}</span>${cart[p.id]?`<i class="qty">${cart[p.id]}</i>`:''}</button>`).join('')||'<p class="hint">No hay productos activos en esta categoría. Agrégalos desde Administrador.</p>'}</div></div>
- <div><div class="card" id="cart"><b>Pedido · Mesa ${mesa}</b>
+ <div class="grid">${prods.map(p=>`<button class="item" style="--c:${ccol(p.c)}" onclick="add(${p.id})"><div class="ph">${p.img?`<img src="${p.img}" alt="">`:emo(p.c)}</div><strong>${esc(p.n)}</strong><span>${money(p.p)}</span>${cart[p.id]?`<i class="qty">${cart[p.id]}</i>`:''}</button>`).join('')||'<p class="hint">No hay productos activos en esta categoría.</p>'}</div></div>
+ <div><div class="card" id="cart"><b>${ab?`Agregar al pedido ${pnum(ab.os[0])} · Mesa ${mesa}`:`Nuevo pedido · Mesa ${mesa}`}</b>
+ ${ab?`<p class="hint" style="margin:4px 0">Esta mesa tiene una cuenta abierta: lo que envíes se suma a ese pedido.</p>`:''}
  ${lines.map(l=>`<div class="row"><span>${l.q} × ${esc(l.p.n)}</span><span><button class="g" onclick="add(${l.p.id},-1)">−</button><button class="g" onclick="add(${l.p.id})">+</button></span></div>`).join('')||'<p class="hint">Toca un producto para agregarlo.</p>'}
- <input placeholder="Nombre del cliente (opcional)" value="${esc(cli)}" oninput="cli=this.value" style="margin-bottom:6px">
+ ${ab?'':`<input placeholder="Nombre del cliente (opcional)" value="${esc(cli)}" oninput="cli=this.value" style="margin-bottom:6px">`}
  <textarea rows="2" placeholder="Observaciones (sin azúcar, para llevar…)" oninput="nota=this.value">${esc(nota)}</textarea>
  <div class="row"><b>Total</b><b>${money(tot)}</b></div>
- <button class="p" style="width:100%" ${lines.length?'':'disabled'} onclick="enviar()">Enviar a cocina</button></div></div></div>
- <h3>Pedidos en curso</h3>${mine.map(o=>`<div class="card row"><span><b>Mesa ${o.mesa}${o.cliente?' · '+esc(o.cliente):''}</b> · ${o.items.map(i=>i.q+' '+esc(i.n)).join(', ')}${o.nota?` <i>(${esc(o.nota)})</i>`:''}</span>
- <span>${o.st=='listo'?`<button class="p" onclick="avanzar(${o.id})">Marcar entregado</button>`:`<span class="tag">${o.st=='nuevo'?'En espera':'Preparando'}</span>`}</span></div>`).join('')||'<p class="hint">Sin pedidos activos.</p>'}${lines.length?`<div class="mbar"><span><b>${lines.reduce((a,l)=>a+l.q,0)}</b> productos · <b>${money(tot)}</b></span><button onclick="document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Ver pedido</button></div>`:''}`;
+ <button class="p" style="width:100%" ${dis} onclick="enviar(false)">Enviar a cocina</button>
+ <button style="width:100%;margin-top:8px" ${dis} onclick="enviar(true)">Entregar directo (sin cocina)</button></div></div></div>
+ <h3>Mesas abiertas</h3>${cs.map(cuentaCard).join('')||'<p class="hint">No hay mesas abiertas.</p>'}
+ ${lines.length?`<div class="mbar"><span><b>${lines.reduce((a,l)=>a+l.q,0)}</b> productos · <b>${money(tot)}</b></span><button onclick="document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Ver pedido</button></div>`:''}`;
 }
+function cuentaCard(c){const o0=c.os[0],tot=c.os.reduce((a,o)=>a+total(o),0);
+ return `<div class="card"><div class="row"><b>Pedido ${pnum(o0)} · Mesa ${o0.mesa}${o0.cliente?' · '+esc(o0.cliente):''}</b><b>${money(tot)}</b></div>
+ ${c.os.map(o=>`<div class="row" style="border-top:1px dashed var(--bd)"><span class="hint">${hhmm(o.t0)} · ${o.items.map(i=>i.q+' '+esc(i.n)).join(', ')}</span>${o.st=='listo'?`<button class="p" onclick="avanzar(${o.id})">Entregar</button>`:`<span class="tag">${o.dir?'Directo':stTxt[o.st]}</span>`}</div>`).join('')}
+ <div class="row" style="flex-wrap:wrap;justify-content:flex-end;margin-top:6px"><button onclick="verCuenta(${c.k})">Ver detalle</button><button onclick="mesa=${o0.mesa};draw();document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Agregar</button><button class="p" onclick="cerrar(${c.k})">Cerrar cuenta</button></div></div>`}
+function verCuenta(k){const os=S.orders.filter(o=>ck(o)==k).sort((a,b)=>a.t0-b.t0);if(!os.length)return;
+ const o0=os[0],tot=os.reduce((a,o)=>a+total(o),0),m=document.createElement('div');m.className='modal';m.onclick=e=>{if(e.target==m)m.remove()};
+ m.innerHTML=`<div class="card sheet"><div class="row"><b style="font-size:22px">Pedido ${pnum(o0)}</b><button class="g" onclick="this.closest('.modal').remove()">Cerrar ✕</button></div>
+ <p class="hint" style="margin:0 0 8px">Mesa ${o0.mesa}${o0.cliente?' · '+esc(o0.cliente):''} · ${fec(o0.t0)} ${hhmm(o0.t0)}</p>
+ <table style="min-width:0"><tr><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Monto</th></tr>${os.map(o=>o.items.map(i=>`<tr><td>${esc(i.n)}<div class="hint">${hhmm(o.t0)} · ${o.dir?'Directo':stTxt[o.st]}</div></td><td>${i.q}</td><td>${money(i.p)}</td><td>${money(i.p*i.q)}</td></tr>`).join('')).join('')}</table>
+ ${os.filter(o=>o.nota).map(o=>`<p class="hint">Nota: ${esc(o.nota)}</p>`).join('')}
+ <div class="row" style="font-size:22px;margin-top:8px"><b>Total</b><b>${money(tot)}</b></div></div>`;
+ document.body.appendChild(m)}
+function cerrar(k){const os=S.orders.filter(o=>ck(o)==k&&!o.cerrada),pend=os.filter(o=>o.st!='entregado').length;
+ if(!confirm(pend?'Hay '+pend+' envío(s) sin entregar. ¿Cerrar la cuenta igual?':'¿Cerrar la cuenta? La mesa quedará libre.'))return;
+ os.forEach(o=>o.cerrada=true);save();draw()}
 function add(id,d=1){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];draw()}
-function enviar(){const items=Object.entries(cart).map(([id,q])=>{const p=S.products.find(x=>x.id==id);return {n:p.n,p:p.p,q}});
- S.orders.push({id:Date.now(),mesa,cliente:cli.trim(),items,nota,st:'nuevo',t0:Date.now()});save();cart={};nota='';cli='';draw()}
+function enviar(dir){const items=Object.entries(cart).map(([id,q])=>{const p=S.products.find(x=>x.id==id);return p&&{n:p.n,p:p.p,q}}).filter(Boolean);if(!items.length)return;
+ const ab=cuentaDe(mesa),now=Date.now(),o={id:now,mesa,cliente:ab?(ab.os[0].cliente||''):cli.trim(),items,nota,t0:now,cuenta:ab?ab.k:now};
+ if(dir){o.st='entregado';o.dir=true;o.t3=now}else o.st='nuevo';
+ S.orders.push(o);save();cart={};nota='';cli='';draw()}
 function avanzar(id){const o=S.orders.find(x=>x.id==id),t=Date.now();
  if(o.st=='nuevo'){o.st='prep';o.t1=t}else if(o.st=='prep'){o.st='listo';o.t2=t}else if(o.st=='listo'){o.st='entregado';o.t3=t}
  save();draw()}
@@ -174,7 +201,7 @@ function avanzar(id){const o=S.orders.find(x=>x.id==id),t=Date.now();
 function cocina(){
  const col=(st,t,btn)=>{const os=S.orders.filter(o=>o.st==st).sort((a,b)=>a.t0-b.t0);
  return `<div class="kc ${st}"><h3>${t} (${os.length})</h3>${os.map(o=>{const ms=Date.now()-(st=='nuevo'?o.t0:st=='prep'?o.t1:o.t2);
- return `<div class="card"><div class="row"><b>Mesa ${o.mesa}${o.cliente?' · '+esc(o.cliente):''}</b><span class="${ms>600000&&st!='listo'?'late':'hint'}">${mm(ms)} · llegó ${hhmm(o.t0)}</span></div>
+ return `<div class="card"><div class="row"><b>P${pnum(o)} · Mesa ${o.mesa}${o.cliente?' · '+esc(o.cliente):''}${ck(o)!=o.id?' <span class="tag">Adicional</span>':''}</b><span class="${ms>600000&&st!='listo'?'late':'hint'}">${mm(ms)} · llegó ${hhmm(o.t0)}</span></div>
  ${o.items.map(i=>`<div>${i.q} × ${esc(i.n)}</div>`).join('')}${o.nota?`<div class="hint">Nota: ${esc(o.nota)}</div>`:''}
  ${btn?`<button class="p" style="margin-top:8px;width:100%" onclick="avanzar(${o.id})">${btn}</button>`:''}</div>`}).join('')||'<p class="hint">Nada por aquí.</p>'}</div>`};
  return `<div class="col3">${col('nuevo','Nuevos','Empezar a preparar')}${col('prep','Preparando','Marcar listo')}${col('listo','Listos para entregar','')}</div><p class="hint">El cronómetro se pone en ámbar pasados 10 minutos.</p>`;
@@ -211,7 +238,7 @@ function addProd(){const n=$('nn').value.trim(),p=parseFloat($('np').value);if(!
  S.products.push({id:S.pid++,n,c:$('nc').value,p,a:true});save();draw()}
 function upd(id,k,v){S.products.find(x=>x.id==id)[k]=v;save();if(k=='a'||k=='c')draw()}
 function repTab(){
- const done=S.orders.filter(o=>o.st=='entregado'),avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+ const done=S.orders.filter(o=>o.st=='entregado'&&!o.dir),avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
  const vent=S.orders.reduce((a,o)=>a+total(o),0);
  const by={};S.orders.forEach(o=>o.items.forEach(i=>by[i.n]=(by[i.n]||0)+i.q));
  const top=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,6),mx=top.length?top[0][1]:1;
@@ -229,7 +256,7 @@ function demo(){const act=S.products.filter(p=>p.a),now=Date.now();
   S.orders.push({id:Date.now()+i,mesa:1+Math.floor(Math.random()*8),items,nota:'',st:'entregado',t0,t1,t2,t3:t2+(1+Math.random()*2)*60000})}
  save();draw()}
 function histList(){
- let os=[...S.orders].sort((a,b)=>b.t0-a.t0);
+ let os=[...S.orders].sort((a,b)=>ck(b)-ck(a)||a.t0-b.t0);
  if(hd1)os=os.filter(o=>dkey(o.t0)>=hd1);if(hd2)os=os.filter(o=>dkey(o.t0)<=hd2);
  const q=hq.trim().toLowerCase();if(q)os=os.filter(o=>(o.cliente||'').toLowerCase().includes(q));
  return os}
@@ -240,16 +267,16 @@ function histTab(){
  <label style="flex:1;min-width:130px"><span class="hint">Hasta</span><input type="date" value="${hd2}" onchange="hd2=this.value;draw()"></label>
  <label style="flex:2;min-width:160px"><span class="hint">Buscar cliente</span><input value="${esc(hq)}" placeholder="Nombre y Enter" onchange="hq=this.value;draw()"></label>
  <button onclick="hd1=hd2=hq='';draw()">Limpiar</button></div>
- <p class="hint" style="margin:8px 0">${os.length} pedidos · ${money(tot)}</p>
+ <p class="hint" style="margin:8px 0">${new Set(os.map(ck)).size} pedidos · ${money(tot)}</p>
  <button class="p" onclick="exportar()">Exportar a Excel</button> <button class="g" onclick="borrarMostrados()">Borrar los entregados que se muestran</button>
  <p class="hint" style="margin:8px 0 0">Exporta primero y luego borra: el Excel se genera con los pedidos que ves según los filtros. Los pedidos aún sin entregar no se borran.</p></div>
- <div class="card tw"><table><tr><th>Pedido</th><th>Fecha</th><th>Hora</th><th>Mesa</th><th>Cliente</th><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Monto</th><th>Estado</th><th>Prep.</th></tr>${os.map(o=>o.items.map((it,k)=>`<tr><td>${idn(o)}</td><td>${fec(o.t0)}</td><td>${hhmm(o.t0)}</td><td>${o.mesa}</td><td>${esc(o.cliente||'—')}</td><td>${esc(it.n)}</td><td>${it.q}</td><td>${money(it.p)}</td><td>${money(it.p*it.q)}</td><td>${o.st}</td><td>${o.t2?mm(o.t2-o.t1):'—'}</td></tr>`).join('')).join('')||'<tr><td colspan="11" class="hint">No hay pedidos con esos filtros.</td></tr>'}</table></div>`;
+ <div class="card tw"><table><tr><th>Pedido</th><th>Fecha</th><th>Hora</th><th>Mesa</th><th>Cliente</th><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Monto</th><th>Estado</th><th>Prep.</th></tr>${os.map(o=>o.items.map((it,k)=>`<tr><td>${pnum(o)}</td><td>${fec(o.t0)}</td><td>${hhmm(o.t0)}</td><td>${o.mesa}</td><td>${esc(o.cliente||'—')}</td><td>${esc(it.n)}</td><td>${it.q}</td><td>${money(it.p)}</td><td>${money(it.p*it.q)}</td><td>${o.st}</td><td>${o.t2?mm(o.t2-o.t1):'—'}</td></tr>`).join('')).join('')||'<tr><td colspan="11" class="hint">No hay pedidos con esos filtros.</td></tr>'}</table></div>`;
 }
 async function exportar(){
  const os=histList();if(!os.length)return alert('No hay pedidos para exportar.');
  const head=['Pedido','Fecha','Hora','Mesa','Cliente','Producto','Cantidad','Precio unitario','Monto','Estado','Preparación (min)'];
  const rows=[head];let g=0;
- os.forEach(o=>o.items.forEach(i=>{g+=i.p*i.q;rows.push([idn(o),fec(o.t0),hhmm(o.t0),o.mesa,o.cliente||'',i.n,i.q,i.p,i.p*i.q,o.st,o.t2?Math.round((o.t2-o.t1)/6000)/10:''])}));
+ os.forEach(o=>o.items.forEach(i=>{g+=i.p*i.q;rows.push([pnum(o),fec(o.t0),hhmm(o.t0),o.mesa,o.cliente||'',i.n,i.q,i.p,i.p*i.q,o.st,o.t2?Math.round((o.t2-o.t1)/6000)/10:''])}));
   const name='pedidos_'+dkey(Date.now());let data,fn;
  if(window.XLSX){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[8,12,10,6,18,28,9,15,10,12,16].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Pedidos');data=XLSX.write(wb,{type:'array',bookType:'xlsx'});fn=name+'.xlsx'}
  else{data='\ufeff'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');fn=name+'.csv'}
