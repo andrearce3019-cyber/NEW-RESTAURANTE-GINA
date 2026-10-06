@@ -53,33 +53,11 @@
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyaGlub3Zjc2t6YmFrbnVmYm5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyOTE3MDAsImV4cCI6MjEwNjg2NzcwMH0.yr9QZmELXin-JiFHmjJS61nW5UuQoSmGxM32KaCUv7o';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('login-btn');
-
-            btn.textContent = 'Iniciando sesión...';
-            btn.disabled = true;
-
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-            if (error) {
-                alert('Error al iniciar sesión: ' + error.message);
-                btn.textContent = 'Iniciar Sesión';
-                btn.disabled = false;
-            } else {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app').style.display = 'block';
-                document.getElementById('app').innerHTML = `
-                    <div style="text-align:center; padding: 40px; background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
-                        <h2 style="color: #0d9488; margin-bottom: 10px;">¡Bienvenido al Sistema!</h2>
-                        <p style="color: #64748b;">Sesión iniciada correctamente como: <b>${data.user.email}</b></p>
-                        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">Cerrar Sesión</button>
-                    </div>
-                `;
-            }
-        }
+async function handleLogin(e) {
+    e.preventDefault();
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+}
     </script>
 </body>
 </html>
