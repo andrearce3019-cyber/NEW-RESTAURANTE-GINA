@@ -176,7 +176,7 @@ function mozo(){
 function cuentaCard(c){const o0=c.os[0],tot=c.os.reduce((a,o)=>a+total(o),0);
  return `<div class="card"><div class="row"><b>Pedido ${pnum(o0)} · Mesa ${o0.mesa}${o0.cliente?' · '+esc(o0.cliente):''}</b><b>${money(tot)}</b></div>
  ${c.os.map(o=>`<div class="row" style="border-top:1px dashed var(--bd)"><span class="hint">${hhmm(o.t0)} · ${o.items.map(i=>i.q+' '+esc(i.n)).join(', ')}</span><span style="display:flex;gap:4px;align-items:center;flex:none">${o.st=='listo'?`<button class="p" onclick="avanzar(${o.id})">Entregar</button>`:`<span class="tag">${o.st=='anulado'?'Anulado':o.dir?'Directo':stTxt[o.st]}</span>`}${o.st!='anulado'?`<button class="g" title="Anular este envío" aria-label="Anular este envío" onclick="anular([${o.id}])">✕</button>`:''}</span></div>`).join('')}
- <div class="row" style="flex-wrap:wrap;justify-content:flex-end;margin-top:6px"><button onclick="verCuenta(${c.k})">Ver detalle</button><button onclick="mesa=${o0.mesa};draw();document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Agregar</button><button style="color:#c0392b" onclick="anular(${JSON.stringify(c.os.map(o=>o.id))},true)">Anular pedido</button><button class="p" onclick="cerrar(${c.k})">Cerrar cuenta</button></div></div>`}
+ <div class="row" style="flex-wrap:wrap;justify-content:flex-end;margin-top:6px"><button onclick="verCuenta(${c.k})">Ver detalle</button><button onclick="mesa=${o0.mesa};draw();document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Agregar</button><button style="color:#c0392b" onclick="anular(${JSON.stringify(c.os.map(o=>o.id))},true)">Anular pedido</button><button class="p" onclick="cerrar(${c.k})">Pedido entregado</button></div></div>`}
 function verCuenta(k){const os=S.orders.filter(o=>ck(o)==k).sort((a,b)=>a.t0-b.t0);if(!os.length)return;
  const o0=os[0],tot=os.reduce((a,o)=>a+total(o),0),m=document.createElement('div');m.className='modal';m.onclick=e=>{if(e.target==m)m.remove()};
  m.innerHTML=`<div class="card sheet"><div class="row"><b style="font-size:22px">Pedido ${pnum(o0)}</b><button class="g" onclick="this.closest('.modal').remove()">Cerrar ✕</button></div>
@@ -207,9 +207,9 @@ function anular(ids,todo){const os=S.orders.filter(o=>ids.includes(o.id)&&o.st!=
  if(m===null)return;const now=Date.now();os.forEach(o=>{o.st='anulado';o.ta=now;if(m.trim())o.motivo=m.trim()});
  const k=ck(os[0]),rest=S.orders.filter(o=>ck(o)==k&&!o.cerrada);if(todo||rest.every(o=>o.st=='anulado'))rest.forEach(o=>o.cerrada=true);
  save();draw()}
-function cerrar(k){const os=S.orders.filter(o=>ck(o)==k&&!o.cerrada),pend=os.filter(o=>o.st!='entregado'&&o.st!='anulado').length;
- if(!confirm(pend?'Hay '+pend+' envío(s) sin entregar. ¿Cerrar la cuenta igual?':'¿Cerrar la cuenta? La mesa quedará libre.'))return;
- os.forEach(o=>o.cerrada=true);save();draw()}
+function cerrar(k){const os=S.orders.filter(o=>ck(o)==k&&!o.cerrada),pend=os.filter(o=>o.st=='nuevo'||o.st=='prep').length;
+ if(!confirm(pend?'Hay '+pend+' envío(s) que cocina aún no termina. ¿Marcar el pedido como entregado igual?':'¿Marcar el pedido como entregado? La mesa quedará libre.'))return;
+ const now=Date.now();os.forEach(o=>{if(o.st=='listo'){o.st='entregado';o.t3=now}o.cerrada=true});save();draw()}
 function add(id,d=1){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];draw()}
 function enviar(dir){const items=Object.entries(cart).map(([id,q])=>{const p=S.products.find(x=>x.id==id);return p&&{n:p.n,p:p.p,q}}).filter(Boolean);if(!items.length)return;
  const ab=cuentaDe(mesa),now=Date.now(),o={id:now,mesa,cliente:ab?(ab.os[0].cliente||''):cli.trim(),items,nota,t0:now,cuenta:ab?ab.k:now};
@@ -292,15 +292,15 @@ function histTab(){
  <p class="hint" style="margin:8px 0">${new Set(os.map(ck)).size} pedidos · ${money(tot)}</p>
  <button class="p" onclick="exportar()">Exportar a Excel</button> <button class="g" onclick="borrarMostrados()">Borrar los entregados que se muestran</button>
  <p class="hint" style="margin:8px 0 0">Exporta primero y luego borra: el Excel se genera con los pedidos que ves según los filtros. Los pedidos aún sin entregar no se borran.</p></div>
- <div class="card tw"><table><tr><th>Pedido</th><th>Fecha</th><th>Hora</th><th>Mesa</th><th>Cliente</th><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Monto</th><th>Estado</th><th>Prep.</th></tr>${os.map(o=>o.items.map((it,k)=>`<tr${o.st=='anulado'?' style="opacity:.6"':''}><td>${pnum(o)}</td><td>${fec(o.t0)}</td><td>${hhmm(o.t0)}</td><td>${o.mesa}</td><td>${esc(o.cliente||'—')}</td><td>${esc(it.n)}</td><td>${it.q}</td><td>${money(it.p)}</td><td>${money(it.p*it.q)}</td><td>${o.st=='anulado'?`<b style="color:#c0392b">Anulado</b>${o.motivo?'<div class="hint">'+esc(o.motivo)+'</div>':''}`:o.st}</td><td>${o.t2?mm(o.t2-o.t1):'—'}</td></tr>`).join('')).join('')||'<tr><td colspan="11" class="hint">No hay pedidos con esos filtros.</td></tr>'}</table></div>`;
+ <div class="card tw"><table><tr><th>Pedido</th><th>Fecha</th><th>Hora</th><th>Mesa</th><th>Cliente</th><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Monto</th><th>Estado</th><th>Motivo</th><th>Prep.</th></tr>${os.map(o=>o.items.map((it,k)=>`<tr${o.st=='anulado'?' style="opacity:.6"':''}><td>${pnum(o)}</td><td>${fec(o.t0)}</td><td>${hhmm(o.t0)}</td><td>${o.mesa}</td><td>${esc(o.cliente||'—')}</td><td>${esc(it.n)}</td><td>${it.q}</td><td>${money(it.p)}</td><td>${money(it.p*it.q)}</td><td>${o.st=='anulado'?'<b style="color:#c0392b">Anulado</b>':o.st}</td><td>${o.st=='anulado'&&o.motivo?esc(o.motivo):''}</td><td>${o.t2?mm(o.t2-o.t1):'—'}</td></tr>`).join('')).join('')||'<tr><td colspan="12" class="hint">No hay pedidos con esos filtros.</td></tr>'}</table></div>`;
 }
 async function exportar(){
  const os=histList();if(!os.length)return alert('No hay pedidos para exportar.');
- const head=['Pedido','Fecha','Hora','Mesa','Cliente','Producto','Cantidad','Precio unitario','Monto','Estado','Preparación (min)'];
+ const head=['Pedido','Fecha','Hora','Mesa','Cliente','Producto','Cantidad','Precio unitario','Monto','Estado','Motivo de anulación','Preparación (min)'];
  const rows=[head];let g=0;
- os.forEach(o=>o.items.forEach(i=>{g+=i.p*i.q;rows.push([pnum(o),fec(o.t0),hhmm(o.t0),o.mesa,o.cliente||'',i.n,i.q,i.p,o.st=='anulado'?0:i.p*i.q,o.st=='anulado'?'anulado'+(o.motivo?': '+o.motivo:''):o.st,o.t2?Math.round((o.t2-o.t1)/6000)/10:''])}));
+ os.forEach(o=>o.items.forEach(i=>{g+=i.p*i.q;rows.push([pnum(o),fec(o.t0),hhmm(o.t0),o.mesa,o.cliente||'',i.n,i.q,i.p,o.st=='anulado'?0:i.p*i.q,o.st,o.st=='anulado'?(o.motivo||''):'',o.t2?Math.round((o.t2-o.t1)/6000)/10:''])}));
   const name='pedidos_'+dkey(Date.now());let data,fn;
- if(window.XLSX){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[8,12,10,6,18,28,9,15,10,12,16].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Pedidos');data=XLSX.write(wb,{type:'array',bookType:'xlsx'});fn=name+'.xlsx'}
+ if(window.XLSX){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[8,12,10,6,18,28,9,15,10,12,26,16].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Pedidos');data=XLSX.write(wb,{type:'array',bookType:'xlsx'});fn=name+'.xlsx'}
  else{data='\ufeff'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');fn=name+'.csv'}
  let dl=null;try{dl=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){}
  if(dl){try{await dl.save({filename:fn,data})}catch(e){if(e&&e.code!='declined')alert('No se pudo guardar el archivo.')}return}
