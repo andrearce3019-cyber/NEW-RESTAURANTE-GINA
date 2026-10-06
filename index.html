@@ -100,7 +100,7 @@ const PAL=['#d9650f','#2a8a56','#c93a7a','#2b7fd0','#a8740a','#6f52c0','#12859a'
 const EMO={Desayunos:'🥐',Almuerzos:'🍛',Postres:'🍰',Helados:'🍨',Jugos:'🍹',Gaseosas:'🥤'};
 const ccol=c=>PAL[Math.max(0,CATS.indexOf(c))%PAL.length],emo=c=>EMO[c]||'🍽️';
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const total=o=>o.items.reduce((a,i)=>a+i.p*i.q,0);
+const total=o=>o.st=='anulado'?0:o.items.reduce((a,i)=>a+i.p*i.q,0);
 
 /* ===== EN LÍNEA (Supabase) ===== */
 function loginForm(){return `<div class="login"><h1>Mi Restaurante</h1><p class="hint">Ingresa con tu correo y contraseña.</p><div class="card"><input id="lu" type="email" placeholder="Correo electrónico" autocapitalize="none" autocomplete="username" style="margin-bottom:8px"><input id="lp" type="password" placeholder="Contraseña" autocomplete="current-password" onkeydown="if(event.key=='Enter')ingresar()" style="margin-bottom:10px"><button class="p" style="width:100%;display:block" onclick="ingresar()">Entrar</button></div></div>`}
@@ -148,7 +148,7 @@ function draw(){
 function login(r){user=r;draw()}
 
 /* MOZO */
-const stTxt={nuevo:'En espera',prep:'Preparando',listo:'Listo',entregado:'Entregado'};
+const stTxt={anulado:'Anulado',nuevo:'En espera',prep:'Preparando',listo:'Listo',entregado:'Entregado'};
 const ck=o=>o.cuenta||o.id;
 function cuentasAbiertas(){const g={};S.orders.filter(o=>!o.cerrada).forEach(o=>{(g[ck(o)]=g[ck(o)]||[]).push(o)});
  return Object.entries(g).map(([k,os])=>({k:+k,os:os.sort((x,y)=>x.t0-y.t0)})).sort((x,y)=>x.os[0].t0-y.os[0].t0)}
@@ -175,20 +175,20 @@ function mozo(){
 }
 function cuentaCard(c){const o0=c.os[0],tot=c.os.reduce((a,o)=>a+total(o),0);
  return `<div class="card"><div class="row"><b>Pedido ${pnum(o0)} · Mesa ${o0.mesa}${o0.cliente?' · '+esc(o0.cliente):''}</b><b>${money(tot)}</b></div>
- ${c.os.map(o=>`<div class="row" style="border-top:1px dashed var(--bd)"><span class="hint">${hhmm(o.t0)} · ${o.items.map(i=>i.q+' '+esc(i.n)).join(', ')}</span>${o.st=='listo'?`<button class="p" onclick="avanzar(${o.id})">Entregar</button>`:`<span class="tag">${o.dir?'Directo':stTxt[o.st]}</span>`}</div>`).join('')}
- <div class="row" style="flex-wrap:wrap;justify-content:flex-end;margin-top:6px"><button onclick="verCuenta(${c.k})">Ver detalle</button><button onclick="mesa=${o0.mesa};draw();document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Agregar</button><button class="p" onclick="cerrar(${c.k})">Cerrar cuenta</button></div></div>`}
+ ${c.os.map(o=>`<div class="row" style="border-top:1px dashed var(--bd)"><span class="hint">${hhmm(o.t0)} · ${o.items.map(i=>i.q+' '+esc(i.n)).join(', ')}</span><span style="display:flex;gap:4px;align-items:center;flex:none">${o.st=='listo'?`<button class="p" onclick="avanzar(${o.id})">Entregar</button>`:`<span class="tag">${o.st=='anulado'?'Anulado':o.dir?'Directo':stTxt[o.st]}</span>`}${o.st!='anulado'?`<button class="g" title="Anular este envío" aria-label="Anular este envío" onclick="anular([${o.id}])">✕</button>`:''}</span></div>`).join('')}
+ <div class="row" style="flex-wrap:wrap;justify-content:flex-end;margin-top:6px"><button onclick="verCuenta(${c.k})">Ver detalle</button><button onclick="mesa=${o0.mesa};draw();document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Agregar</button><button style="color:#c0392b" onclick="anular(${JSON.stringify(c.os.map(o=>o.id))},true)">Anular pedido</button><button class="p" onclick="cerrar(${c.k})">Cerrar cuenta</button></div></div>`}
 function verCuenta(k){const os=S.orders.filter(o=>ck(o)==k).sort((a,b)=>a.t0-b.t0);if(!os.length)return;
  const o0=os[0],tot=os.reduce((a,o)=>a+total(o),0),m=document.createElement('div');m.className='modal';m.onclick=e=>{if(e.target==m)m.remove()};
  m.innerHTML=`<div class="card sheet"><div class="row"><b style="font-size:22px">Pedido ${pnum(o0)}</b><button class="g" onclick="this.closest('.modal').remove()">Cerrar ✕</button></div>
  <p class="hint" style="margin:0 0 8px">Mesa ${o0.mesa}${o0.cliente?' · '+esc(o0.cliente):''} · ${fec(o0.t0)} ${hhmm(o0.t0)}</p>
- <table style="min-width:0"><tr><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Monto</th></tr>${os.map(o=>o.items.map(i=>`<tr><td>${esc(i.n)}<div class="hint">${hhmm(o.t0)} · ${o.dir?'Directo':stTxt[o.st]}</div></td><td>${i.q}</td><td>${money(i.p)}</td><td>${money(i.p*i.q)}</td></tr>`).join('')).join('')}</table>
+ <table style="min-width:0"><tr><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Monto</th></tr>${os.map(o=>o.items.map(i=>`<tr><td>${esc(i.n)}<div class="hint">${hhmm(o.t0)} · ${o.st=='anulado'?'Anulado'+(o.motivo?': '+esc(o.motivo):''):o.dir?'Directo':stTxt[o.st]}</div></td><td>${i.q}</td><td>${money(i.p)}</td><td>${money(i.p*i.q)}</td></tr>`).join('')).join('')}</table>
  ${os.filter(o=>o.nota).map(o=>`<p class="hint">Nota: ${esc(o.nota)}</p>`).join('')}
  <div class="row" style="font-size:22px;margin-top:8px"><b>Total</b><b>${money(tot)}</b></div>
  <div class="row" style="flex-wrap:wrap;justify-content:flex-end;margin-top:10px"><button onclick="imprimir(${k})">🖨️ Imprimir</button><button class="p" onclick="whats(${k})">Enviar por WhatsApp</button></div></div>`;
  document.body.appendChild(m)}
 const NEGOCIO='Restaurante Gina';
 function tk(k){const os=S.orders.filter(o=>ck(o)==k).sort((a,b)=>a.t0-b.t0),it=[];
- os.forEach(o=>o.items.forEach(i=>{const e=it.find(x=>x.n==i.n&&x.p==i.p);e?e.q+=i.q:it.push({...i})}));
+ os.filter(o=>o.st!='anulado').forEach(o=>o.items.forEach(i=>{const e=it.find(x=>x.n==i.n&&x.p==i.p);e?e.q+=i.q:it.push({...i})}));
  return {o0:os[0],it,tot:it.reduce((a,i)=>a+i.p*i.q,0)}}
 function whats(k){const {o0,it,tot}=tk(k);let n=prompt('WhatsApp del cliente (ej. 987654321).\nDéjalo vacío para elegir el contacto en WhatsApp:');
  if(n===null)return;n=n.replace(/\D/g,'');if(n.length==9)n='51'+n;
@@ -200,7 +200,14 @@ function imprimir(k){const {o0,it,tot}=tk(k),w=window.open('','_blank');if(!w)re
  ${it.map(i=>`<div class="r"><span>${i.q} x ${esc(i.n)}</span><span>${money(i.p*i.q)}</span></div>`).join('')}<hr>
  <div class="r"><b>TOTAL</b><b>${money(tot)}</b></div><p style="text-align:center">¡Gracias por su visita!<br><small>No válido como comprobante de pago</small></p></body></html>`);
  w.document.close();w.focus();setTimeout(()=>w.print(),300)}
-function cerrar(k){const os=S.orders.filter(o=>ck(o)==k&&!o.cerrada),pend=os.filter(o=>o.st!='entregado').length;
+function anular(ids,todo){const os=S.orders.filter(o=>ids.includes(o.id)&&o.st!='anulado');if(!os.length)return;
+ const enCocina=os.some(o=>o.st=='prep'||o.st=='listo');
+ let m=prompt((todo?'¿Anular TODO el pedido?':'¿Anular este envío ('+os[0].items.map(i=>i.q+' '+i.n).join(', ')+')?')+(enCocina?'\nOjo: cocina ya lo empezó a preparar.':'')+'\n\nEscribe el motivo de la anulación:');
+ while(m!==null&&!m.trim())m=prompt('El motivo es obligatorio. ¿Por qué se anula?');
+ if(m===null)return;const now=Date.now();os.forEach(o=>{o.st='anulado';o.ta=now;if(m.trim())o.motivo=m.trim()});
+ const k=ck(os[0]),rest=S.orders.filter(o=>ck(o)==k&&!o.cerrada);if(todo||rest.every(o=>o.st=='anulado'))rest.forEach(o=>o.cerrada=true);
+ save();draw()}
+function cerrar(k){const os=S.orders.filter(o=>ck(o)==k&&!o.cerrada),pend=os.filter(o=>o.st!='entregado'&&o.st!='anulado').length;
  if(!confirm(pend?'Hay '+pend+' envío(s) sin entregar. ¿Cerrar la cuenta igual?':'¿Cerrar la cuenta? La mesa quedará libre.'))return;
  os.forEach(o=>o.cerrada=true);save();draw()}
 function add(id,d=1){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];draw()}
@@ -255,7 +262,7 @@ function upd(id,k,v){S.products.find(x=>x.id==id)[k]=v;save();if(k=='a'||k=='c')
 function repTab(){
  const done=S.orders.filter(o=>o.st=='entregado'&&!o.dir),avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
  const vent=S.orders.reduce((a,o)=>a+total(o),0);
- const by={};S.orders.forEach(o=>o.items.forEach(i=>by[i.n]=(by[i.n]||0)+i.q));
+ const by={};S.orders.filter(o=>o.st!='anulado').forEach(o=>o.items.forEach(i=>by[i.n]=(by[i.n]||0)+i.q));
  const top=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,6),mx=top.length?top[0][1]:1;
  return `<div class="kpi"><div class="card"><b>${money(vent)}</b><span class="hint">Ventas registradas</span></div><div class="card"><b>${S.orders.length}</b><span class="hint">Pedidos</span></div>
  <div class="card"><b>${mm(avg(S.orders.filter(o=>o.t1).map(o=>o.t1-o.t0)))}</b><span class="hint">Espera hasta empezar</span></div>
@@ -285,13 +292,13 @@ function histTab(){
  <p class="hint" style="margin:8px 0">${new Set(os.map(ck)).size} pedidos · ${money(tot)}</p>
  <button class="p" onclick="exportar()">Exportar a Excel</button> <button class="g" onclick="borrarMostrados()">Borrar los entregados que se muestran</button>
  <p class="hint" style="margin:8px 0 0">Exporta primero y luego borra: el Excel se genera con los pedidos que ves según los filtros. Los pedidos aún sin entregar no se borran.</p></div>
- <div class="card tw"><table><tr><th>Pedido</th><th>Fecha</th><th>Hora</th><th>Mesa</th><th>Cliente</th><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Monto</th><th>Estado</th><th>Prep.</th></tr>${os.map(o=>o.items.map((it,k)=>`<tr><td>${pnum(o)}</td><td>${fec(o.t0)}</td><td>${hhmm(o.t0)}</td><td>${o.mesa}</td><td>${esc(o.cliente||'—')}</td><td>${esc(it.n)}</td><td>${it.q}</td><td>${money(it.p)}</td><td>${money(it.p*it.q)}</td><td>${o.st}</td><td>${o.t2?mm(o.t2-o.t1):'—'}</td></tr>`).join('')).join('')||'<tr><td colspan="11" class="hint">No hay pedidos con esos filtros.</td></tr>'}</table></div>`;
+ <div class="card tw"><table><tr><th>Pedido</th><th>Fecha</th><th>Hora</th><th>Mesa</th><th>Cliente</th><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Monto</th><th>Estado</th><th>Prep.</th></tr>${os.map(o=>o.items.map((it,k)=>`<tr${o.st=='anulado'?' style="opacity:.6"':''}><td>${pnum(o)}</td><td>${fec(o.t0)}</td><td>${hhmm(o.t0)}</td><td>${o.mesa}</td><td>${esc(o.cliente||'—')}</td><td>${esc(it.n)}</td><td>${it.q}</td><td>${money(it.p)}</td><td>${money(it.p*it.q)}</td><td>${o.st=='anulado'?`<b style="color:#c0392b">Anulado</b>${o.motivo?'<div class="hint">'+esc(o.motivo)+'</div>':''}`:o.st}</td><td>${o.t2?mm(o.t2-o.t1):'—'}</td></tr>`).join('')).join('')||'<tr><td colspan="11" class="hint">No hay pedidos con esos filtros.</td></tr>'}</table></div>`;
 }
 async function exportar(){
  const os=histList();if(!os.length)return alert('No hay pedidos para exportar.');
  const head=['Pedido','Fecha','Hora','Mesa','Cliente','Producto','Cantidad','Precio unitario','Monto','Estado','Preparación (min)'];
  const rows=[head];let g=0;
- os.forEach(o=>o.items.forEach(i=>{g+=i.p*i.q;rows.push([pnum(o),fec(o.t0),hhmm(o.t0),o.mesa,o.cliente||'',i.n,i.q,i.p,i.p*i.q,o.st,o.t2?Math.round((o.t2-o.t1)/6000)/10:''])}));
+ os.forEach(o=>o.items.forEach(i=>{g+=i.p*i.q;rows.push([pnum(o),fec(o.t0),hhmm(o.t0),o.mesa,o.cliente||'',i.n,i.q,i.p,o.st=='anulado'?0:i.p*i.q,o.st=='anulado'?'anulado'+(o.motivo?': '+o.motivo:''):o.st,o.t2?Math.round((o.t2-o.t1)/6000)/10:''])}));
   const name='pedidos_'+dkey(Date.now());let data,fn;
  if(window.XLSX){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[8,12,10,6,18,28,9,15,10,12,16].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Pedidos');data=XLSX.write(wb,{type:'array',bookType:'xlsx'});fn=name+'.xlsx'}
  else{data='\ufeff'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');fn=name+'.csv'}
@@ -299,7 +306,7 @@ async function exportar(){
  if(dl){try{await dl.save({filename:fn,data})}catch(e){if(e&&e.code!='declined')alert('No se pudo guardar el archivo.')}return}
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data]));a.download=fn;document.body.appendChild(a);a.click();a.remove()}
 function borrarMostrados(){
- const ids=new Set(histList().filter(o=>o.st=='entregado').map(o=>o.id));
+ const ids=new Set(histList().filter(o=>o.st=='entregado'||o.st=='anulado').map(o=>o.id));
  if(!ids.size)return alert('No hay pedidos entregados en pantalla para borrar.');
  if(!confirm('Se borrarán '+ids.size+' pedidos entregados. Esta acción no se puede deshacer. ¿Ya exportaste a Excel?'))return;
  S.orders=S.orders.filter(o=>!ids.has(o.id));save();draw()}
