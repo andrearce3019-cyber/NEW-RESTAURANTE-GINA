@@ -107,7 +107,7 @@ const SUPA_URL='https://urhinovcskzbaknufbnr.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyaGlub3Zjc2t6YmFrbnVmYm5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyOTE3MDAsImV4cCI6MjEwNjg2NzcwMH0.yr9QZmELXin-JiFHmjJS61nW5UuQoSmGxM32KaCUv7o';
 /* ====================================================================== */
 const ONLINE=/^https:\/\//.test(SUPA_URL);
-let addTo=null,vista='admin',myName='Local',mtab='pedir',ktab='cola',rper='hoy',pagoSel='',NUM={};const rv=()=>user=='admin'?vista:user;
+let myUser='',enUso=null,sesIni=0,lastLat=0,P=null,lastP=0,pdia='',addTo=null,vista='admin',myName='Local',mtab='pedir',ktab='cola',rper='hoy',pagoSel='',NUM={};const rv=()=>user=='admin'?vista:user;
 let actx=null,primera=true,vNuevo=new Set(),vListo=new Set(),swReg=null,wl=null,avisosOn=!!(window.Notification&&Notification.permission=='granted');
 let sb=null,me=null,snap={},cfgSnap='',cfgVer=0,ver=0,busy=false,tm=null,ch=null;
 const K='resto_proto_v1';
@@ -138,11 +138,25 @@ async function ingresar(){const u=$('lu').value.trim().toLowerCase(),pw=$('lp').
  if(error)return alert('Usuario o contraseña incorrectos.');await enter(data.user)}
 async function enter(u){const {data}=await sb.from('perfiles').select('rol,usuario').eq('id',u.id).maybeSingle();
  if(!data){await sb.auth.signOut();alert('Este usuario no tiene un perfil asignado.');return draw()}
- me=u;user=data.rol;myName=data.usuario||(u.email||'').split('@')[0];primera=true;vNuevo.clear();vListo.clear();regSW();pantalla();await pull();clearInterval(tm);tm=setInterval(pull,3000);
+ me=u;user=data.rol;myUser=data.usuario||(u.email||'').split('@')[0];{const st=getNom(myUser);if(st&&st.d==dkey(Date.now())){myName=st.n;sesIni=st.i||Date.now()}else{myName='';await chequeoUso()}}primera=true;vNuevo.clear();vListo.clear();regSW();pantalla();await pull();clearInterval(tm);tm=setInterval(pull,3000);
  if(ch)sb.removeChannel(ch);ch=sb.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'orders'},pull).subscribe();draw()}
-async function salir(){clearInterval(tm);if(ch)sb.removeChannel(ch);await sb.auth.signOut();me=null;user=null;vista='admin';S.orders=[];snap={};draw()}
+async function salir(){clearInterval(tm);try{if(myUser&&myName)await sb.from('sesiones').update({visto:0}).eq('usuario',myUser)}catch(e){}myName='';myUser='';enUso=null;P=null;if(ch)sb.removeChannel(ch);await sb.auth.signOut();me=null;user=null;vista='admin';S.orders=[];snap={};draw()}
 async function cambiarClave(){const p=prompt('Nueva contraseña (mínimo 6 caracteres):');if(!p)return;
  const {error}=await sb.auth.updateUser({password:p});alert(error?'No se pudo cambiar: '+error.message:'Contraseña cambiada.')}
+/* ===== PERSONAL: nombre de quien usa cada usuario ===== */
+const NAMES={mozo:'Mozo',cocina:'Cocina',admin:'Administrador'};
+function getNom(u){try{return JSON.parse(localStorage.getItem('gina_nom_'+u))}catch(e){return null}}
+function setNom(u,v){try{localStorage.setItem('gina_nom_'+u,JSON.stringify(v))}catch(e){}}
+async function chequeoUso(){enUso=null;try{const {data}=await sb.from('sesiones').select('*').eq('usuario',myUser).maybeSingle();if(data&&data.visto>Date.now()-120000)enUso=data}catch(e){}}
+function nameForm(){const st=getNom(myUser);return `<div class="login"><h1>¡Hola! 👋</h1><p class="hint">Entraste con el usuario <b>${esc(myUser)}</b> (${NAMES[user]}). Escribe tu nombre para registrar tu turno.</p>
+ ${enUso?`<p class="warn">⚠️ Este usuario ya está en uso por <b>${esc(enUso.nombre||'otra persona')}</b> desde las ${hhmm(enUso.inicio||enUso.visto)}. Si sigues, quedará registrado tu nombre.</p>`:''}
+ <div class="card"><input id="nom" placeholder="Tu nombre (ej. Carlos)" value="${esc(st?st.n:'')}" autocomplete="name" maxlength="40" onkeydown="if(event.key=='Enter')confNom()" style="margin-bottom:10px"><button class="p" style="width:100%;display:block" onclick="confNom()">Empezar turno</button><button class="g" style="width:100%;margin-top:6px" onclick="salir()">Salir</button></div></div>`}
+async function confNom(){const n=($('nom').value||'').trim().replace(/\s+/g,' ');if(n.length<2)return alert('Escribe tu nombre.');
+ myName=n;sesIni=Date.now();setNom(myUser,{n,d:dkey(sesIni),i:sesIni});latido(true);
+ try{await sb.from('turnos').insert({usuario:myUser,nombre:n,rol:user,inicio:sesIni})}catch(e){}draw()}
+async function cambiarNombre(){if(!confirm('¿Cambiar el nombre de quien usa este usuario? Hazlo cuando cambie el turno o la persona.'))return;myName='';setNom(myUser,null);await chequeoUso();enUso=null;draw()}
+function latido(force){if(!sb||!me||!myName)return;const t=Date.now();if(!force&&t-lastLat<30000)return;lastLat=t;
+ try{sb.from('sesiones').upsert({usuario:myUser,nombre:myName,rol:user,visto:t,inicio:sesIni}).then(()=>{},()=>{})}catch(e){}}
 /* ===== AVISOS: sonido, vibración y notificación ===== */
 function regSW(){try{if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').then(x=>swReg=x).catch(()=>{})}catch(e){}}
 function sonar(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();const t=actx.currentTime;
@@ -181,7 +195,7 @@ async function pull(){if(!sb||!me||busy)return;const v=ver;
     const d=x.data.data;S.cats=d.cats;CATS=S.cats;S.products=d.products;S.pid=d.pid;S.mesas=d.mesas||8;cfgSnap=JSON.stringify(d);cfgVer=x.data.ver}}
   else if(user=='admin'){S.cats=[...DEF];CATS=S.cats;S.products=SEED.map((q,i)=>({id:i+1,n:q[0],c:q[1],p:q[2],a:true}));S.pid=SEED.length+1;await push()}
   S.orders=o.data.map(x=>({...x.data,num:x.num})).reverse();snap={};S.orders.forEach(x=>snap[x.id]=JSON.stringify(x));avisos();
-  if(JSON.stringify([S.cats,S.products,S.orders])!==before&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))draw()}catch(e){}}
+  latido();if(JSON.stringify([S.cats,S.products,S.orders])!==before&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))draw()}catch(e){}}
 function draw(){
  numerar();
  if(!user&&ONLINE){$('app').innerHTML=loginForm();return}
@@ -189,8 +203,8 @@ function draw(){
  <button onclick="login('mozo')"><span class="ic">🛎️</span><span><b>Mozo</b><br><span class="hint">Toma pedidos por mesa</span></span></button>
  <button onclick="login('cocina')"><span class="ic">👨‍🍳</span><span><b>Cocina</b><br><span class="hint">Recibe y prepara pedidos</span></span></button>
  <button onclick="login('admin')"><span class="ic">📊</span><span><b>Administrador</b><br><span class="hint">Productos, precios y reportes</span></span></button></div>`;return}
- const names={mozo:'Mozo',cocina:'Cocina',admin:'Administrador'};
- $('app').innerHTML=`<div class="top"><b>Restaurante Gina · ${names[rv()]}</b>${user=='admin'?`<select aria-label="Ir a" onchange="vista=this.value;draw()">${[['admin','Administrador'],['mozo','Mozo'],['cocina','Cocina']].map(o=>`<option value="${o[0]}" ${vista==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:''}${ONLINE?`${user=='admin'?`<button onclick="cambiarClave()">Mi clave</button>`:''}${avisosOn?'':`<button onclick="activarAvisos()">🔔 Activar avisos</button>`}<button onclick="salir()">Salir</button>`:`<button onclick="user=null;draw()">Cambiar perfil</button>`}</div><div class="wrap">${rv()=='mozo'?mozo():rv()=='cocina'?cocina():admin()}</div>`;
+ const names=NAMES;if(ONLINE&&user&&!myName){$('app').innerHTML=nameForm();return}
+ $('app').innerHTML=`<div class="top"><b>Restaurante Gina · ${names[rv()]}</b>${user=='admin'?`<select aria-label="Ir a" onchange="vista=this.value;draw()">${[['admin','Administrador'],['mozo','Mozo'],['cocina','Cocina']].map(o=>`<option value="${o[0]}" ${vista==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:''}${ONLINE?`${user=='admin'?`<button onclick="cambiarClave()">Mi clave</button>`:''}${avisosOn?'':`<button onclick="activarAvisos()">🔔 Activar avisos</button>`}<button onclick="cambiarNombre()" title="Cambiar nombre">👤 ${esc(myName)}</button><button onclick="salir()">Salir</button>`:`<button onclick="user=null;draw()">Cambiar perfil</button>`}</div><div class="wrap">${rv()=='mozo'?mozo():rv()=='cocina'?cocina():admin()}</div>`;
  document.querySelectorAll('.tabs button.on').forEach(b=>b.scrollIntoView({inline:'center',block:'nearest'}));
 }
 function login(r){user=r;draw()}
@@ -239,7 +253,7 @@ function mozoPedir(){
  <div class="row"><b>Total</b><b>${money(tot)}</b></div>
  <button class="p" style="width:100%" ${dis} onclick="enviar(false)">Enviar a cocina</button>
  <button style="width:100%;margin-top:8px" ${dis} onclick="enviar(true)">Entregar directo (sin cocina)</button></div></div></div>
- <h3>Pedidos abiertos</h3>${cs.map(cuentaCard).join('')||'<p class="hint">No hay mesas abiertas.</p>'}
+ <h3>Pedidos abiertos</h3>${cs.map(cuentaCard).join('')||'<p class="hint">No hay pedidos abiertos.</p>'}
  ${lines.length?`<div class="mbar"><span><b>${lines.reduce((a,l)=>a+l.q,0)}</b> productos · <b>${money(tot)}</b></span><button onclick="document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Ver pedido</button></div>`:''}`;
 }
 
@@ -315,7 +329,7 @@ function mozoDia(){const cs=agrupar(S.orders.filter(esHoy)).filter(c=>c.mozo==my
  <p class="hint" style="margin:8px 0 0">Toca un pedido para ver su detalle o reimprimirlo.</p></div>`}
 function add(id,d=1){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];draw()}
 function enviar(dir){const items=Object.entries(cart).map(([id,q])=>{const p=S.products.find(x=>x.id==id);return p&&{n:p.n,p:p.p,q}}).filter(Boolean);if(!items.length)return;
- const ab=destino(),now=Date.now(),o={id:now,mesa,cliente:ab?(ab.os[0].cliente||''):cli.trim(),items,nota,t0:now,cuenta:ab?ab.k:now,mozo:myName};
+ const ab=destino(),now=Date.now(),o={id:now,mesa,cliente:ab?(ab.os[0].cliente||''):cli.trim(),items,nota,t0:now,cuenta:ab?ab.k:now,mozo:myName,usr:myUser};
  if(dir){o.st='entregado';o.dir=true;o.t3=now}else o.st='nuevo';
  S.orders.push(o);addTo=null;save();cart={};nota='';cli='';draw();if(dir&&!ab&&!mesa)cobrar(o.cuenta)}
 function avanzar(id){const o=S.orders.find(x=>x.id==id),t=Date.now();if(!o)return;
@@ -342,7 +356,7 @@ function cocinaDia(){const os=S.orders.filter(o=>!o.dir&&esHoy(o)).sort((a,b)=>b
 setInterval(()=>{if(rv()=='cocina'&&ktab=='cola'&&!document.getElementById('mdl'))draw()},15000);
 
 /* ===== ADMIN ===== */
-function admin(){return seg([['prod','🍽️ Productos y precios'],['rep','📊 Reportes'],['hist','🗂️ Historial']],atab,'atab')+(atab=='prod'?prodTab():atab=='rep'?repTab():histTab())}
+function admin(){return seg([['prod','🍽️ Productos y precios'],['rep','📊 Reportes'],['hist','🗂️ Historial'],['per','👥 Personal']],atab,'atab')+(atab=='prod'?prodTab():atab=='rep'?repTab():atab=='per'?perTab():histTab())}
 function prodTab(){
  return `<div class="card"><b>Agregar producto</b><div class="row" style="flex-wrap:wrap"><input id="nn" placeholder="Nombre" style="flex:2;min-width:150px"><select id="nc" style="flex:1;min-width:110px">${CATS.map(c=>`<option>${esc(c)}</option>`).join('')}</select><input id="np" type="number" step="0.5" min="0" placeholder="Precio" style="flex:1;min-width:80px"><button class="p" onclick="addProd()">Agregar</button></div></div>
  <div class="card"><div class="row" style="flex-wrap:wrap"><span><b>Mesas del local</b><div class="hint">Cuántas mesas aparecen en la pantalla del mozo.</div></span><input type="number" min="1" max="60" value="${S.mesas||8}" style="width:100px" onchange="setMesas(this.value)"></div></div>
@@ -370,6 +384,21 @@ function addProd(){const n=$('nn').value.trim(),p=parseFloat($('np').value);if(!
  S.products.push({id:S.pid++,n,c:$('nc').value,p,a:true});save();draw()}
 function upd(id,k,v){S.products.find(x=>x.id==id)[k]=v;save();if(k=='a'||k=='c')draw()}
 
+async function cargarPersonal(){if(!sb)return;lastP=Date.now();
+ try{const [a,b,c]=await Promise.all([sb.from('perfiles').select('usuario,rol'),sb.from('sesiones').select('*'),sb.from('turnos').select('*').order('inicio',{ascending:false}).limit(500)]);
+  P={per:a.data||[],ses:b.data||[],tur:c.data||[],err:a.error||b.error||c.error};if(rv()=='admin'&&atab=='per'&&!/INPUT|SELECT/.test(document.activeElement.tagName))draw()}catch(e){}}
+function perTab(){if(!ONLINE)return '<p class="hint">Disponible en la versión en línea.</p>';
+ if(!P||Date.now()-lastP>15000)cargarPersonal();if(!P)return '<p class="hint">Cargando personal…</p>';
+ if(P.err)return '<div class="card warn">Para ver el personal falta un paso en Supabase: corre el script <b>personal.sql</b> en SQL Editor y recarga la página.</div>';
+ const now=Date.now(),ses={},ord={admin:0,mozo:1,cocina:2};P.ses.forEach(x=>ses[x.usuario]=x);
+ const us=[...P.per].sort((a,b)=>(ord[a.rol]-ord[b.rol])||String(a.usuario).localeCompare(b.usuario)),act=us.filter(u=>ses[u.usuario]&&ses[u.usuario].visto>now-120000).length;
+ const d=pdia||dkey(now),tur=P.tur.filter(t=>dkey(t.inicio)==d);
+ return `<div class="kpi">${kpi('🟢',act,'Usuarios en uso ahora','#2a8a56')}${kpi('⚪',us.length-act,'Usuarios libres','#7a8a85')}${kpi('🕘',tur.length,'Turnos iniciados el '+fec(new Date(d+'T12:00').getTime()),'#6f52c0')}</div>
+ <div class="card tw"><b>Usuarios</b><table style="margin-top:6px"><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Lo usa</th><th>Desde / última vez</th></tr>
+ ${us.map(u=>{const x=ses[u.usuario],on=x&&x.visto>now-120000;return `<tr><td><b>${esc(u.usuario)}</b></td><td>${NAMES[u.rol]||u.rol}</td><td>${on?'<span class="chip" style="--c:#2a8a56">🟢 En uso</span>':'<span class="chip" style="--c:#7a8a85">⚪ Libre</span>'}</td><td>${on?'<b>'+esc(x.nombre||'—')+'</b>':(x&&x.nombre?'<span class="hint">'+esc(x.nombre)+'</span>':'—')}</td><td>${on?'desde '+hhmm(x.inicio||x.visto):(x&&x.inicio?'<span class="hint">'+fec(x.inicio)+' '+hhmm(x.inicio)+'</span>':'—')}</td></tr>`}).join('')}</table>
+ <p class="hint" style="margin:8px 0 0">"En uso" = tiene la app abierta (se actualiza cada 30 segundos). Al pulsar Salir queda libre.</p></div>
+ <div class="card tw"><div class="row" style="flex-wrap:wrap"><b>Registro de turnos</b><input type="date" value="${d}" style="width:auto" onchange="pdia=this.value;draw()"></div>
+ <table style="margin-top:6px"><tr><th>Hora</th><th>Nombre</th><th>Usuario</th><th>Rol</th></tr>${tur.map(t=>`<tr><td>${hhmm(t.inicio)}</td><td><b>${esc(t.nombre)}</b></td><td>${esc(t.usuario)}</td><td>${NAMES[t.rol]||t.rol}</td></tr>`).join('')||'<tr><td colspan="4" class="hint">Nadie inició turno ese día.</td></tr>'}</table></div>`}
 function enPeriodo(t){const now=new Date(),d=dkey(t),h=dkey(now);
  if(rper=='hoy')return d==h;if(rper=='ayer')return d==dkey(now.getTime()-864e5);
  if(rper=='7d')return t>=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6).getTime();if(rper=='mes')return d.slice(0,7)==h.slice(0,7);return true}
@@ -405,10 +434,10 @@ function histTab(){
 }
 async function exportar(){
  const os=histList();if(!os.length)return alert('No hay pedidos para exportar.');
- const rows=[['N° pedido','Fecha','Hora','Mesa','Mozo','Cliente','Producto','Cantidad','Precio unitario','Monto','Estado','Método de pago','Motivo de anulación','Cocinero','Preparación (min)']];
- os.forEach(o=>o.items.forEach(i=>rows.push([pnum(o),fec(o.t0),hhmm(o.t0),o.mesa||'Para llevar',o.mozo||'',o.cliente||'',i.n,i.q,i.p,o.st=='anulado'?0:i.p*i.q,stTxt[o.st]||o.st,o.st=='anulado'?'':(PAGOS[o.pago]?PAGOS[o.pago][0]:''),o.st=='anulado'?(o.motivo||''):'',o.cocinero||'',o.t2&&o.t1?Math.round((o.t2-o.t1)/6000)/10:''])));
+ const rows=[['N° pedido','Fecha','Hora','Mesa','Mozo','Cliente','Producto','Cantidad','Precio unitario','Monto','Estado','Método de pago','Motivo de anulación','Cocinero','Preparación (min)','Usuario']];
+ os.forEach(o=>o.items.forEach(i=>rows.push([pnum(o),fec(o.t0),hhmm(o.t0),o.mesa||'Para llevar',o.mozo||'',o.cliente||'',i.n,i.q,i.p,o.st=='anulado'?0:i.p*i.q,stTxt[o.st]||o.st,o.st=='anulado'?'':(PAGOS[o.pago]?PAGOS[o.pago][0]:''),o.st=='anulado'?(o.motivo||''):'',o.cocinero||'',o.t2&&o.t1?Math.round((o.t2-o.t1)/6000)/10:'',o.usr||''])));
  const name='pedidos_'+dkey(Date.now());let data,fn;
- if(window.XLSX){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[10,12,10,6,14,18,28,9,15,10,12,15,26,14,16].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Pedidos');data=XLSX.write(wb,{type:'array',bookType:'xlsx'});fn=name+'.xlsx'}
+ if(window.XLSX){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[10,12,10,10,14,18,28,9,15,10,12,15,26,14,16,14].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Pedidos');data=XLSX.write(wb,{type:'array',bookType:'xlsx'});fn=name+'.xlsx'}
  else{data='﻿'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');fn=name+'.csv'}
  let dl=null;try{dl=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){}
  if(dl){try{await dl.save({filename:fn,data})}catch(e){if(e&&e.code!='declined')alert('No se pudo guardar el archivo.')}return}
