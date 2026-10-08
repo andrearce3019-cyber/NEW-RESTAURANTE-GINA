@@ -143,6 +143,32 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--ac2)}
 .cv{font-size:11px;font-weight:700;min-height:14px}.cl2{font-size:10px;color:var(--mu);margin-top:3px}
 .tabs.ctabs{flex-wrap:wrap;overflow:visible}.tabs.ctabs button{flex:none}
 @media(max-width:760px){.tabs.ctabs{position:static;gap:6px}.tabs.ctabs button{min-height:36px;padding:6px 12px;font-size:14px}}
+.bnav{display:flex;gap:4px;background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:4px;margin-bottom:14px;box-shadow:var(--sh);width:fit-content;max-width:100%}
+.bnav button{border:0;background:transparent;border-radius:10px;min-height:40px;display:flex;align-items:center;gap:6px;font-weight:600;color:var(--mu);padding:6px 14px}
+.bnav button.on{background:var(--ac);color:var(--on)}.bi{position:relative;display:inline-block;font-size:17px}
+.bdg{position:absolute;top:-7px;right:-12px;background:#c0392b;color:#fff;font:700 10px system-ui;font-style:normal;padding:1px 5px;border-radius:99px;min-width:16px;text-align:center}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 18px;border-radius:12px;z-index:70;font-weight:700;box-shadow:0 6px 24px #0004;max-width:90vw;text-align:center}
+.listos{position:sticky;top:0;z-index:15;background:color-mix(in srgb,var(--ok) 14%,var(--cd));border:2px solid var(--ok);border-radius:14px;padding:4px 12px;margin-bottom:12px;box-shadow:var(--sh)}.listos .row+.row{border-top:1px dashed var(--bd)}
+.dest{display:flex;align-items:center;gap:10px;background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:8px 12px;margin-bottom:10px;box-shadow:var(--sh)}.dest span{display:flex;flex-direction:column}.dest small{color:var(--mu);font-size:13px}
+.paso{display:flex;align-items:center;gap:8px;margin:2px 0 10px;font-size:17px}.pn{width:26px;height:26px;border-radius:99px;background:var(--ac);color:var(--on);display:grid;place-items:center;font-weight:800;font-size:14px;flex:none}
+.big2{width:100%;min-height:54px;font-size:17px;margin-top:6px}
+div.item{background:var(--cd);border:1px solid var(--bd);cursor:pointer;color:inherit;user-select:none}
+.qc{display:flex;align-items:center;justify-content:space-between;margin:0 8px 8px;background:var(--ac);color:var(--on);border-radius:10px}.qc b{font-size:16px}.qc button{background:transparent;border:0;color:inherit;min-height:36px;font-size:22px;padding:0 14px;line-height:1}
+.hero{padding:16px}.hv{font-size:38px;font-weight:800;line-height:1.1;margin:2px 0 6px}
+.al{display:flex;align-items:center;gap:10px;padding:11px 4px;border-top:1px dashed var(--bd)}.al .alt{flex:1}.al.go{cursor:pointer}.al.go:hover{background:var(--ac2)}
+details.acc{background:var(--cd);border:1px solid var(--bd);border-radius:14px;margin-bottom:10px;box-shadow:var(--sh)}
+details.acc summary{list-style:none;cursor:pointer;padding:14px;display:flex;justify-content:space-between;gap:6px 10px;align-items:center;flex-wrap:wrap}details.acc summary::-webkit-details-marker{display:none}
+details.acc summary::after{content:'▾';color:var(--ac);font-weight:800}details.acc[open] summary::after{content:'▴'}.accb{padding:0 12px 12px}.accb .card{box-shadow:none}.accb .g2{margin-top:0}
+.ev{display:flex;gap:10px;background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px}.ei{font-size:19px;width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--ac2);flex:none}
+.eb{flex:1;min-width:0}.ea{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}.ea button{min-height:32px;padding:4px 12px}
+.seg.chips button{font-size:14px}
+@media(max-width:760px){
+ .bnav{position:fixed;left:0;right:0;bottom:0;z-index:40;width:auto;margin:0;border-radius:0;border-width:1px 0 0;padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 16px #0002}
+ .bnav button{flex:1;flex-direction:column;gap:1px;padding:4px 2px;font-size:11px;min-height:52px;border-radius:10px}.bnav button.on{background:var(--ac2);color:var(--ac)}.bi{font-size:21px}
+ .wrap{padding-bottom:150px}.mbar{bottom:calc(68px + env(safe-area-inset-bottom,0px))}
+ #cart{display:none}.hv{font-size:32px}
+}
+.zb{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.zb button{min-height:46px}
 </style></head><body><div id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -154,11 +180,11 @@ const SUPA_URL='https://urhinovcskzbaknufbnr.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyaGlub3Zjc2t6YmFrbnVmYm5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyOTE3MDAsImV4cCI6MjEwNjg2NzcwMH0.yr9QZmELXin-JiFHmjJS61nW5UuQoSmGxM32KaCUv7o';
 /* ====================================================================== */
 const ONLINE=/^https:\/\//.test(SUPA_URL);
-let agAdm=false,bq='',busF=false,agMode=false,vp='real',ptab='ent',cobCli='',cobMoz='',cobSolo=false,cartP={},zoomCart=false,modo='local',htipo='',myUser='',enUso=null,sesIni=0,lastLat=0,P=null,lastP=0,pdia='',addTo=null,vista='admin',myName='Local',mtab='pedir',ktab='cola',rper='hoy',pagoSel='',NUM={};const rv=()=>user=='admin'?vista:user;
+let pstep='donde',regT='todo',regPer='hoy',regQ='',regVista='lista',masSub='per',openSec={pag:true},agAdm=false,bq='',busF=false,agMode=false,vp='real',ptab='ent',cobCli='',cobMoz='',cobSolo=false,cartP={},zoomCart=false,modo='local',htipo='',myUser='',enUso=null,sesIni=0,lastLat=0,P=null,lastP=0,pdia='',addTo=null,vista='admin',myName='Local',mtab='pedir',ktab='cola',rper='hoy',pagoSel='',NUM={};const rv=()=>user=='admin'?vista:user;
 let actx=null,primera=true,vNuevo=new Set(),vListo=new Set(),swReg=null,wl=null,avisosOn=!!(window.Notification&&Notification.permission=='granted');
 let sb=null,me=null,snap={},cfgSnap='',cfgVer=0,ver=0,busy=false,tm=null,ch=null;
 const K='resto_proto_v1';
-let S=load(),user=null,cat=CATS[0],mesa=1,cart={},nota='',atab='prod',cli='',hq='',hd1='',hd2='';
+let S=load(),user=null,cat='⭐',mesa=1,cart={},nota='',atab='hoy',cli='',hq='',hd1='',hd2='';
 function load(){try{const s=JSON.parse(localStorage.getItem(K));if(s&&s.products){s.cats=s.cats||[...DEF];return s}}catch(e){}
  return {cats:[...DEF],products:SEED.map((p,i)=>({id:i+1,n:p[0],c:p[1],p:p[2],a:true})),orders:[],seq:1,pid:SEED.length+1}}
 function save(){if(ONLINE){ver++;push();return}try{localStorage.setItem(K,JSON.stringify(S))}catch(e){alert('No se pudo guardar: la memoria del navegador está llena. Quita algunas fotos o exporta y borra pedidos.')}}
@@ -302,7 +328,6 @@ function cerrarModal(){zoomCart=false;const m=$('mdl');if(m)m.remove()}
 function cuentasAbiertas(){const g={};S.orders.filter(o=>!o.cerrada&&enModo(o)).forEach(o=>{(g[ck(o)]=g[ck(o)]||[]).push(o)});
  return Object.entries(g).map(([k,os])=>({k:+k,os:os.sort((x,y)=>x.t0-y.t0)})).sort((x,y)=>x.os[0].t0-y.os[0].t0)}
 const cuentaDe=m=>cuentasAbiertas().find(c=>c.os[0].mesa==m&&!c.os.some(o=>o.fiado));
-function mozo(){return seg([['pedir','🛎️ Tomar pedidos'],['dia','📋 Mi día']],mtab,'mtab')+(mtab=='dia'?mozoDia():mozoPedir())}
 function cartLines(){return Object.entries(cart).map(([id,q])=>{const p=S.products.find(x=>x.id==id);return p&&{p,q,pu:cartP[id]!=null?cartP[id]:p.p}}).filter(Boolean)}
 function cartBody(big){const ls=cartLines(),fuera=mesa===-1,tot=ls.reduce((a,l)=>a+l.pu*l.q,0);
  if(!ls.length)return '<p class="hint">Toca un producto para agregarlo.</p>';
@@ -317,8 +342,10 @@ function setModo(m){if(modo==m)return;if(Object.keys(cart).length&&!confirm('Al 
 function renderZoom(){const ab=destino(),n=cartLines().length,dis=n?'':'disabled';
  modal(`<div class="row"><b style="font-size:22px">${ab?`Agregar al pedido N° ${pnum(ab.os[0])}`:'Nuevo pedido'} · ${mlab(mesa)}</b><button class="g" onclick="cerrarModal();draw()">Cerrar ✕</button></div>
  ${cartBody(true)}
- ${nota?`<p class="hint">📝 ${esc(nota)}</p>`:''}
- <div class="row" style="flex-wrap:wrap;gap:8px;margin-top:10px">${n?'<button class="g" style="color:#c0392b" onclick="vaciar()">🗑️ Vaciar todo</button>':''}<span style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto"><button ${dis} onclick="cerrarModal();enviar(true,true)">📝 Cobrar después</button><button ${dis} onclick="cerrarModal();enviar(true)">Entregar directo</button><button class="p" ${dis} onclick="cerrarModal();enviar(false)">Enviar a cocina</button></span></div>`);
+ ${ab?'':`<input placeholder="${modo=='fuera'?'Cliente o dirección (opcional)':'Nombre del cliente (opcional)'}" value="${esc(cli)}" oninput="cli=this.value" style="margin-top:10px">`}<textarea rows="2" placeholder="Observaciones (sin azúcar, para llevar…)" oninput="nota=this.value" style="margin-top:6px">${esc(nota)}</textarea>
+ <button class="p big2" ${dis} onclick="cerrarModal();enviar(false)">🍳 Enviar a cocina</button>
+ <div class="zb"><button ${dis} onclick="cerrarModal();enviar(true)">✅ Entregar directo</button><button ${dis} style="border-color:#d9a400" onclick="cerrarModal();enviar(true,true)">📝 Cobrar después</button></div>
+ ${n?'<div style="text-align:center;margin-top:6px"><button class="g" style="color:#c0392b" onclick="vaciar()">🗑️ Vaciar todo</button></div>':''}`);
  const sh=document.querySelector('#mdl .sheet');if(sh)sh.classList.add('zoom');zoomCart=true}
 function modoInfo(){const n=cuentasAbiertas().filter(c=>c.os[0].mesa===-1).length;
  return `<div class="card fuera"><b>🛵 Pedido por fuera (reparto)</b><p class="hint" style="margin:4px 0 0">Cada pedido es independiente. Puedes cambiar la <b>cantidad</b> y el <b>precio unitario</b> de cada producto. ${n?n+' pedido(s) por fuera abiertos.':''}</p></div>`}
@@ -327,7 +354,7 @@ const norm=x=>String(x||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(
 const isAg=p=>!!(S.ag&&S.ag[p.id]&&dkey(S.ag[p.id].t)==dkey(Date.now()));
 function gridHTML(prods){
  return `${agMode?'<div class="warn">🚫 <b>Modo agotados:</b> toca un producto para marcarlo <b>agotado</b> o <b>disponible</b>. Se reinicia solo cada día.</div>':''}<div class="grid">${prods.map(p=>{const ag=isAg(p);
- return `<button class="item${p.img||p.emo?'':' sinimg'}${ag?' agot':''}${agMode?' agm':''}" style="--c:${ccol(p.c)}" onclick="${agMode?`togAg(${p.id})`:ag?`agAviso(${p.id})`:`add(${p.id})`}">${p.img||p.emo?`<div class="ph">${p.img?`<img src="${p.img}" alt="">`:esc(p.emo)}</div>`:''}<strong>${esc(p.n)}</strong><span>${money(p.p)}</span>${ag?'<em class="agt">AGOTADO</em>':''}${cart[p.id]&&!agMode?`<i class="qty">${cart[p.id]}</i>`:''}</button>`}).join('')||`<p class="hint">${bq?'No hay productos que coincidan con “'+esc(bq)+'”.':'No hay productos activos en esta categoría.'}</p>`}</div>`}
+ return `<div role="button" tabindex="0" onkeydown="if(event.key=='Enter')this.click()" class="item${p.img||p.emo?'':' sinimg'}${ag?' agot':''}${agMode?' agm':''}" style="--c:${ccol(p.c)}" onclick="${agMode?`togAg(${p.id})`:ag?`agAviso(${p.id})`:`add(${p.id})`}">${p.img||p.emo?`<div class="ph">${p.img?`<img src="${p.img}" alt="">`:esc(p.emo)}</div>`:''}<strong>${esc(p.n)}</strong><span>${money(p.p)}</span>${ag?'<em class="agt">AGOTADO</em>':''}${cart[p.id]&&!agMode?`<div class="qc" onclick="event.stopPropagation()"><button aria-label="Quitar uno" onclick="add(${p.id},-1)">−</button><b>${cart[p.id]}</b><button aria-label="Agregar uno" onclick="add(${p.id})">+</button></div>`:''}</div>`}).join('')||`<p class="hint">${bq?'No hay productos que coincidan con “'+esc(bq)+'”.':'No hay productos activos en esta categoría.'}</p>`}</div>`}
 function agAviso(id){const p=S.products.find(x=>x.id==id),a=S.ag[id];alert('“'+p.n+'” está AGOTADO hoy'+(a&&a.by?' (lo marcó '+a.by+' a las '+hhmm(a.t)+')':'')+'.\n\nSi ya hay, pulsa “🚫 Agotados” y tócalo para volverlo disponible.')}
 function togAg(id){S.ag=S.ag||{};const p=S.products.find(x=>x.id==id);
  if(isAg(p))delete S.ag[id];else{S.ag[id]={t:Date.now(),by:myName};S.aglog=(S.aglog||[]).concat({id,n:p.n,c:p.c,t:Date.now(),by:myName}).slice(-500);if(ONLINE&&sb)sb.from('estado').upsert({id:'aglog',data:S.aglog}).then(()=>{},()=>{})}
@@ -337,8 +364,11 @@ function togAg(id){S.ag=S.ag||{};const p=S.products.find(x=>x.id==id);
 function ventasDia(n,d){let q=0,m=0;S.orders.forEach(o=>{if(o.prueba||o.st=='anulado'||dkey(o.t0)!=d)return;o.items.forEach(i=>{if(i.n==n){q+=i.q;m+=i.q*i.p}})});return {q,m}}
 function agReporte(){const vis={},l=(S.aglog||[]).filter(x=>enPeriodo(x.t)).sort((a,b)=>b.t-a.t).filter(x=>{const k=x.id+'|'+dkey(x.t);if(vis[k])return false;vis[k]=1;return true});
  if(!l.length)return '';
- return `<div class="card tw" style="margin-top:12px"><b>🚫 Productos que se agotaron</b><p class="hint" style="margin:4px 0 6px">Cuánto se vendió ese día de cada producto que llegó a agotarse. Te ayuda a saber qué preparar en mayor cantidad.</p><table><tr><th>Fecha</th><th>Producto</th><th>Se agotó</th><th>Marcó</th><th>Vendido ese día</th><th>Monto ese día</th></tr>
- ${l.map(x=>{const v=ventasDia(x.n,dkey(x.t));return `<tr><td>${fec(x.t)}</td><td><b>${esc(x.n)}</b></td><td>${hhmm(x.t)}</td><td>${esc(x.by||'—')}</td><td>${v.q} u</td><td><b>${money(v.m)}</b></td></tr>`}).join('')}</table></div>`}
+ return `<div class="card tw" style="margin-top:12px"><b>🚫 Productos que se agotaron</b><p class="hint" style="margin:4px 0 6px">Cuánto se vendió ese día de cada producto que llegó a agotarse. Te ayuda a saber qué preparar en mayor cantidad.</p><table><tr><th>Fecha</th><th>Producto</th><th>Se agotó</th><th>Marcó</th><th>Vendido ese día</th><th>Monto ese día</th><th></th></tr>
+ ${l.map(x=>{const v=ventasDia(x.n,dkey(x.t));return `<tr><td>${fec(x.t)}</td><td><b>${esc(x.n)}</b></td><td>${hhmm(x.t)}</td><td>${esc(x.by||'—')}</td><td>${v.q} u</td><td><b>${money(v.m)}</b></td><td><button class="g" style="color:#c0392b" title="Borrar del registro" onclick="borrarAgLog(${x.id},'${dkey(x.t)}')">🗑️ Borrar</button></td></tr>`}).join('')}</table><div style="text-align:right;margin-top:6px"><button class="g" style="color:#c0392b" onclick="borrarAgLog()">Borrar todo el registro de agotados</button></div></div>`}
+function borrarAgLog(id,d){if(!confirm(id==null?'¿Borrar TODO el registro de productos agotados? No afecta tus ventas.':'¿Quitar este registro? No afecta tus ventas.'))return;
+ S.aglog=id==null?[]:(S.aglog||[]).filter(x=>!(x.id==id&&dkey(x.t)==d));
+ if(ONLINE&&sb)sb.from('estado').upsert({id:'aglog',data:S.aglog}).then(r=>{if(r.error)alert('No se pudo borrar.')},()=>{});else save();draw()}
 function agCard(){const l=S.products.filter(p=>isAg(p));
  return `<div class="card" style="border-left:5px solid #c0392b"><div class="row" style="flex-wrap:wrap"><span><b>🚫 Productos agotados hoy (${l.length})</b><div class="hint">Lo marcan mozos o cocina. Se reinicia solo cada día.</div></span><button onclick="agAdm=!agAdm;draw()">${agAdm?'Cerrar':'Marcar / desmarcar agotados'}</button></div>
  ${l.map(p=>`<div class="row" style="border-top:1px dashed var(--bd)"><span><b>${esc(p.n)}</b><div class="hint">${esc(p.c)} · se agotó a las ${hhmm(S.ag[p.id].t)} · lo marcó ${esc(S.ag[p.id].by||'—')}</div><div style="font-size:14px;margin-top:2px">Vendido hoy: <b>${(v=>v.q+' u · '+money(v.m))(ventasDia(p.n,dkey(Date.now())))}</b></div></span><button class="g" style="color:var(--ok)" onclick="togAg(${p.id})">✅ Ya hay</button></div>`).join('')||(agAdm?'':'<p class="hint" style="margin:6px 0 0">Hoy no hay productos agotados.</p>')}
@@ -392,14 +422,96 @@ function picos(cs){const vs=cs.filter(c=>!c.anulada);if(!vs.length)return '';
  return `<div class="g2" style="margin-top:12px"><div class="card"><b>⏰ Horas pico</b><p class="hint" style="margin:4px 0 0">Más fuerte: <b>${hl(ih)} – ${hl((ih+1)%24)}</b> · ${mx} pedido(s) · ${money(hm[ih])}</p><div class="hcols">${cols}</div><p class="hint" style="margin:6px 0 0">Número de pedidos por hora.</p></div>
  <div class="card"><b>📅 Días más fuertes</b><p class="hint" style="margin:4px 0 0">Más fuerte: <b>${DN[idd]}</b> · ${mxd} pedido(s) · ${money(dm[idd])}</p>${DN.map((n,i)=>`<div style="margin-top:8px"><div class="row" style="padding:0 0 3px"><span>${n}</span><span class="hint"><b style="color:var(--tx)">${d[i]}</b> · ${money(dm[i])}</span></div><div class="bar" style="width:${mxd?Math.max(d[i]/mxd*100,d[i]?3:0):0}%;${i==idd?'':'opacity:.55'}"></div></div>`).join('')}<p class="hint" style="margin:8px 0 0">Usa “Últimos 7 días”, “Este mes” o “Todo” para comparar días.</p></div></div>`}
 
+/* ===== REORGANIZACIÓN: navegación, Hoy, Registros, Análisis ===== */
+function toast(m){document.querySelectorAll('.toast').forEach(x=>x.remove());const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+function bnav(items,cur,v){return `<nav class="bnav">${items.map(x=>`<button class="${cur==x[0]?'on':''}" onclick="${v}='${x[0]}';draw();window.scrollTo(0,0)"><span class="bi">${x[1]}${x[3]?`<i class="bdg">${x[3]}</i>`:''}</span><span class="bl">${x[2]}</span></button>`).join('')}</nav>`}
+function listosBanner(){const li=S.orders.filter(o=>o.st=='listo'&&enModo(o));if(!li.length)return '';
+ return `<div class="listos">${li.slice(0,3).map(o=>`<div class="row"><span>✅ <b>${mlab(o.mesa)}</b> · N° ${pnum(o)} listo para entregar<div class="hint">${o.items.map(i=>i.q+' '+esc(i.n)).join(', ')}</div></span><button class="p" onclick="avanzar(${o.id});toast('✅ Entregado')">Entregar</button></div>`).join('')}${li.length>3?`<div class="hint">y ${li.length-3} más en 📋 Pedidos</div>`:''}</div>`}
+function masPedidos(){const lim=Date.now()-30*864e5,c={};S.orders.forEach(o=>{if(o.prueba||o.st=='anulado'||o.t0<lim)return;o.items.forEach(i=>c[i.n]=(c[i.n]||0)+i.q)});
+ return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([n])=>S.products.find(p=>p.a&&p.n==n)).filter(Boolean).slice(0,8)}
+function mozo(){const n=cuentasAbiertas().length;
+ return listosBanner()+bnav([['pedir','🛎️','Nuevo pedido'],['peds','📋','Pedidos',n],['dia','📊','Mi día']],mtab,'mtab')+(mtab=='dia'?mozoDia():mtab=='peds'?listaPedidos():mozoPedir())}
+
+function admin(){const nav=[['hoy','🏠','Hoy'],['reg','🧾','Registros'],['ana','📊','Análisis'],['menu','🍽️','Menú'],['mas','⚙️','Más']];
+ if(!nav.some(x=>x[0]==atab))atab='hoy';
+ return bnav(nav,atab,'atab')+(atab=='hoy'?hoyTab():atab=='reg'?regTab():atab=='ana'?repTab():atab=='menu'?prodTab():masTab())}
+function masTab(){return seg([['per','👥 Personal'],['aj','⚙️ Ajustes']],masSub,'masSub')+(masSub=='aj'?ajustesTab():perTab())}
+
+function hoyTab(){if(ONLINE&&(!P||Date.now()-lastP>30000))cargarPersonal();
+ const R=S.orders.filter(o=>!o.prueba),now=new Date(),hm=now.getHours()*60+now.getMinutes();
+ const csH=agrupar(R.filter(esHoy)),r=resumen(csH),vend=csH.filter(c=>!c.anulada).reduce((a,c)=>a+c.tot,0);
+ const ay=dkey(Date.now()-864e5),vA=agrupar(R.filter(o=>{if(dkey(o.t0)!=ay)return false;const d=new Date(o.t0);return d.getHours()*60+d.getMinutes()<=hm})).filter(c=>!c.anulada).reduce((a,c)=>a+c.tot,0);
+ const dl=vA?Math.round((vend-vA)/vA*100):null;
+ const ab=agrupar(R.filter(o=>!o.cerrada)).filter(c=>!c.anulada),abT=ab.reduce((a,c)=>a+c.tot,0),ds=deudas(fvp),ags=S.products.filter(isAg);
+ const anH=R.filter(o=>o.st=='anulado'&&dkey(o.ta||o.t0)==dkey(Date.now())),coH=R.filter(o=>(o.cambios||[]).some(c=>dkey(c.t)==dkey(Date.now()))),coc=R.filter(o=>o.st=='nuevo'||o.st=='prep');
+ const al=[];
+ if(ab.length)al.push(['🕒',ab.length+' pedido(s) por cobrar',money(abT),"atab='reg';regT='cob'"]);
+ ds.slice(0,3).forEach(d=>al.push(['📝',d.nom+' debe ('+d.cs.length+' pedido(s))',money(d.tot),"atab='reg';regT='cob'"]));
+ if(coc.length)al.push(['🍳',coc.length+' envío(s) en cocina ahora','','']);
+ if(ags.length)al.push(['🚫',ags.length+' agotado(s): '+ags.slice(0,3).map(p=>p.n).join(', ')+(ags.length>3?'…':''),'',"atab='menu'"]);
+ if(anH.length)al.push(['❌',anH.length+' anulación(es) hoy',money(anH.reduce((a,o)=>a+o.items.reduce((s,i)=>s+i.p*i.q,0),0)),"atab='reg';regT='anul';regPer='hoy'"]);
+ if(coH.length)al.push(['✏️',coH.length+' corrección(es) hoy','',"atab='reg';regT='corr';regPer='hoy'"]);
+ if(S.practica||(S.prac||[]).length)al.push(['🎓',S.practica?'Modo práctica activo para TODOS':'En práctica: '+S.prac.join(', '),'',"atab='mas';masSub='aj'"]);
+ const by={};csH.forEach(c=>c.os.filter(o=>o.st!='anulado').forEach(o=>o.items.forEach(i=>{by[i.n]=by[i.n]||{q:0,m:0};by[i.n].q+=i.q;by[i.n].m+=i.q*i.p})));
+ const top=Object.entries(by).sort((a,b)=>b[1].q-a[1].q).slice(0,3);
+ const enT=P&&P.ses?P.ses.filter(x=>x.rol!='admin'&&x.visto>Date.now()-120000):null;
+ const fl=now.toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long'});
+ return `<div class="sec"><h3>Hoy · ${fl}</h3></div>
+ <div class="card hero"><span class="hint">Vendido hoy</span><div class="hv">${money(vend)}</div><div class="hint">${dl!=null?`<span class="chip" style="--c:${dl>=0?'#2a8a56':'#c0392b'}">${dl>=0?'▲':'▼'} ${Math.abs(dl)}% vs ayer a esta hora</span> `:''}${r.n} pedido(s) · ticket ${money(r.nc?r.cob/r.nc:0)}</div></div>
+ <div class="kpi">${kpi('💵',money(r.m.efectivo),'Efectivo cobrado','#2a8a56')}${kpi('📱',money(r.m.yape+r.m.plin),'Yape + Plin','#7b2d8e')}${kpi('💰',money(r.cob),'Total cobrado')}${kpi('🕒',money(abT),'Por cobrar','#a8740a')}</div>
+ <div class="card"><b>⚠️ Requiere tu atención</b>${al.length?al.map(a=>`<div class="al${a[3]?' go':''}" ${a[3]?`onclick="${a[3]};draw();window.scrollTo(0,0)"`:''}><span>${a[0]}</span><span class="alt">${esc(a[1])}</span>${a[2]?`<b>${a[2]}</b>`:''}${a[3]?'<span class="hint">›</span>':''}</div>`).join(''):'<p class="hint" style="margin:6px 0 0">✅ Todo en orden por ahora.</p>'}</div>
+ <div class="g2"><div class="card"><b>🏆 Lo más vendido hoy</b>${top.map((t,i)=>`<div class="row" style="border-top:1px dashed var(--bd)"><span>${['🥇','🥈','🥉'][i]} ${esc(t[0])}</span><span class="hint"><b style="color:var(--tx)">${t[1].q}</b> · ${money(t[1].m)}</span></div>`).join('')||'<p class="hint">Aún no hay ventas hoy.</p>'}</div>
+ <div class="card"><b>👥 En turno ahora</b>${enT==null?'<p class="hint">Disponible en la versión en línea.</p>':enT.length?enT.map(x=>`<div class="row" style="border-top:1px dashed var(--bd)"><span>🟢 <b>${esc(x.nombre||x.usuario)}</b></span><span class="hint">${esc(x.usuario)} · desde ${hhmm(x.inicio||x.visto)}</span></div>`).join(''):'<p class="hint">Nadie conectado ahora.</p>'}</div></div>
+ <button style="width:100%;margin-top:12px" onclick="atab='ana';rper='hoy';draw();window.scrollTo(0,0)">📊 Ver análisis completo ›</button>`}
+
+/* ----- Registros: todo en un solo lugar ----- */
+function eventos(){const ev=[],R=S.orders.filter(o=>!o.prueba),its=l=>l.map(i=>i.q+' '+i.n).join(', ');
+ agrupar(R).forEach(c=>{const f=c.os.find(o=>o.fiado),pg=c.os.find(o=>o.pago);
+  if(!c.anulada)ev.push({t:c.t0,tp:'ventas',ic:c.cobrado?'💰':f?'📝':'🕒',tit:`N° ${pnum(c.o0)} · ${mlab(c.o0.mesa)}${c.mozo?' · '+c.mozo:''}`,sub:c.os.filter(o=>o.st!='anulado').map(o=>its(o.items)).join(' + ')+(c.o0.cliente?' · '+c.o0.cliente:''),tag:c.cobrado?pagoTag(c.pago):f?'<span class="chip" style="--c:#b94a28">📝 Fiado</span>':'<span class="chip" style="--c:#a8740a">Por cobrar</span>',m:c.tot,k:c.k,cob:c.abierta});
+  if(f&&f.tf)ev.push({t:f.tf,tp:'fiado',ic:'📝',tit:`Fiado a ${f.cliente||'—'} · N° ${pnum(c.o0)}`,sub:`Lo dejó ${f.fiadoPor||'—'} · `+(c.cobrado&&pg?'pagado el '+fec(pg.tp)+' '+hhmm(pg.tp):'pendiente de cobro'),tag:c.cobrado?pagoTag(c.pago):'',m:c.tot,k:c.k,cob:c.abierta})});
+ R.filter(o=>o.st=='anulado').forEach(o=>ev.push({t:o.ta||o.t0,tp:'anul',ic:'❌',tit:`N° ${pnum(o)} · envío anulado · ${mlab(o.mesa)}`,sub:`Motivo: ${o.motivo||'—'} · ${its(o.items)}${o.anuladoPor?' · por '+o.anuladoPor:''}`,m:o.items.reduce((a,i)=>a+i.p*i.q,0),k:ck(o)}));
+ R.forEach(o=>(o.cambios||[]).forEach((c,j)=>{const nx=o.cambios[j+1],des=nx?nx.antes:(o.st=='anulado'?[]:o.items);ev.push({t:c.t,tp:'corr',ic:'✏️',tit:`N° ${pnum(o)} corregido · ${mlab(o.mesa)}`,sub:`“${c.motivo}” · ${its(c.antes)} → ${des.length?its(des):'quitado todo'} · por ${c.by||'—'}`,k:ck(o)})}));
+ (S.aglog||[]).forEach(x=>{const v=ventasDia(x.n,dkey(x.t));ev.push({t:x.t,tp:'ag',ic:'🚫',tit:`${x.n} se agotó`,sub:`Lo marcó ${x.by||'—'} · vendido ese día: ${v.q} u`,m:v.m})});
+ if(P&&P.tur){const ses={};(P.ses||[]).forEach(x=>ses[x.usuario]=x);P.tur.forEach(t=>{const v=turnoInfo(t,ses,Date.now());ev.push({t:t.inicio,tp:'turnos',ic:'👤',tit:`${t.nombre} inició turno`,sub:`${t.usuario} · ${NAMES[t.rol]||t.rol} · ${v.vivo?'en curso':v.fin?'salió '+hhmm(v.fin):'sin salida registrada'} · ${v.dur}`})})}
+ return ev}
+function regLista(){const q=norm(regQ);return eventos().filter(e=>(regT=='todo'||e.tp==regT)&&enPeriodo(e.t,regPer)&&(!q||norm(e.tit+' '+e.sub).includes(q))).sort((a,b)=>b.t-a.t)}
+function regTab(){if(ONLINE&&(!P||Date.now()-lastP>30000))cargarPersonal();
+ const T=[['todo','Todo'],['ventas','💰 Ventas'],['cob','🕒 Por cobrar'],['anul','❌ Anulados'],['corr','✏️ Corregidos'],['fiado','📝 Fiados'],['ag','🚫 Agotados'],['turnos','👤 Turnos']];
+ let h=`<div class="sec"><h3>🧾 Registros</h3></div>${seg(T,regT,'regT').replace('class="seg"','class="seg chips"')}`;
+ if(regT=='cob')return h+cobTab();
+ h+=`${seg([['hoy','Hoy'],['ayer','Ayer'],['7d','7 días'],['mes','Este mes'],['todo','Todo']],regPer,'regPer')}<div class="busq"><input type="search" placeholder="🔍 Buscar cliente, mozo o producto (Enter)" value="${esc(regQ)}" onchange="regQ=this.value;draw()">${regQ?`<button class="g" onclick="regQ='';draw()">✕</button>`:''}</div>`;
+ const ev=regLista(),tot=ev.reduce((a,e)=>a+(e.m||0),0);
+ const del=regT=='ag'?`<button class="g" style="color:#c0392b" onclick="borrarAgPer()">Borrar agotados de este periodo</button>`:regT=='turnos'?`<button class="g" style="color:#c0392b" onclick="borrarTurnosPer()">Borrar turnos de este periodo</button>`:`<button class="g" style="color:#c0392b" onclick="borrarMostrados()">Borrar pedidos cerrados de este periodo</button>`;
+ h+=`<div class="row" style="flex-wrap:wrap;margin-bottom:8px"><span class="hint">${ev.length} registro(s)${regT=='ventas'||regT=='fiado'||regT=='anul'?' · '+money(tot):''}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${regT=='ventas'?`<button class="g" onclick="regVista=regVista=='tabla'?'lista':'tabla';draw()">${regVista=='tabla'?'☰ Ver como lista':'▦ Ver como tabla'}</button>`:''}<button class="p" onclick="expRegs()">Exportar a Excel</button>${del}</span></div>`;
+ if(regT=='turnos'&&!ONLINE)return h+'<p class="hint">Los turnos están disponibles en la versión en línea.</p>';
+ if(regT=='ventas'&&regVista=='tabla'){const t=histTab();return h+t.slice(t.indexOf('<div class="card tw">'))}
+ return h+(ev.slice(0,300).map(e=>`<div class="ev"><span class="ei">${e.ic}</span><div class="eb"><div class="row" style="padding:0;align-items:flex-start"><b>${esc(e.tit)}</b>${e.m!=null?`<b style="white-space:nowrap">${money(e.m)}</b>`:''}</div><div class="hint">${regPer=='hoy'?'':fec(e.t)+' · '}${hhmm(e.t)} · ${esc(e.sub)}</div>${e.tag||e.k?`<div class="ea">${e.tag||''}${e.k?`<button class="g" onclick="verCuenta(${e.k})">Ver detalle</button>`:''}${e.cob?`<button class="p" onclick="cobrar(${e.k})">Cobrar</button>`:''}</div>`:''}</div></div>`).join('')||'<p class="hint">No hay registros con estos filtros.</p>')+(ev.length>300?'<p class="hint">Se muestran los 300 más recientes. Exporta a Excel para ver todo.</p>':'')}
+function expRegs(){if(regT=='ventas')return exportar();const ev=regLista();if(!ev.length)return alert('No hay registros para exportar.');
+ const TN={ventas:'Venta',fiado:'Fiado',anul:'Anulación',corr:'Corrección',ag:'Agotado',turnos:'Turno'};
+ const rows=[['Fecha','Hora','Tipo','Registro','Detalle','Monto']];ev.forEach(e=>rows.push([fec(e.t),hhmm(e.t),TN[e.tp]||e.tp,e.tit,e.sub,e.m!=null?Math.round(e.m*100)/100:'']));
+ const fn='registros_'+regT+'_'+dkey(Date.now());let data,name;
+ if(window.XLSX){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[12,10,12,34,60,12].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Registros');data=XLSX.write(wb,{type:'array',bookType:'xlsx'});name=fn+'.xlsx'}
+ else{data='﻿'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');name=fn+'.csv'}
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data]));a.download=name;document.body.appendChild(a);a.click();a.remove()}
+function borrarAgPer(){const n=(S.aglog||[]).filter(x=>enPeriodo(x.t,regPer)).length;if(!n)return alert('No hay registros de agotados en este periodo.');
+ if(!confirm('¿Borrar '+n+' registro(s) de agotados de este periodo? No afecta tus ventas.'))return;
+ S.aglog=(S.aglog||[]).filter(x=>!enPeriodo(x.t,regPer));if(ONLINE&&sb)sb.from('estado').upsert({id:'aglog',data:S.aglog}).then(()=>{},()=>{});else save();draw()}
+async function borrarTurnosPer(){if(!P)return;const now=Date.now(),ses={};(P.ses||[]).forEach(x=>ses[x.usuario]=x);
+ const ids=P.tur.filter(t=>enPeriodo(t.inicio,regPer)&&!turnoInfo(t,ses,now).vivo).map(t=>t.id);if(!ids.length)return alert('No hay turnos terminados en este periodo.');
+ if(!confirm('¿Borrar '+ids.length+' turno(s) de este periodo? Los turnos en curso no se borran.'))return;
+ const {error}=await sb.from('turnos').delete().in('id',ids);if(error)return alert('No se pudo borrar. Falta correr en Supabase el script de turnos.');lastP=0;await cargarPersonal();draw()}
+
 function mozoPedir(){
- if(!CATS.includes(cat))cat=CATS[0];
+ const top=masPedidos();if(cat=='⭐'&&!top.length)cat=CATS[0];if(cat!='⭐'&&!CATS.includes(cat))cat=CATS[0];
  if(modo=='fuera')mesa=-1;else if(mesa===-1)mesa=1;
- const prods=bq.trim()?S.products.filter(p=>p.a&&norm(p.n).includes(norm(bq))):S.products.filter(p=>p.a&&p.c==cat),lines=cartLines();
- const tot=lines.reduce((a,l)=>a+l.pu*l.q,0),ab=destino(),cs=cuentasAbiertas(),dis=lines.length?'':'disabled';
- return `<div class="modo">${[['local','🏠 Pedido local','Mesas y para llevar'],['fuera','🛵 Pedido por fuera','Reparto · precio libre']].map(m=>`<button class="${modo==m[0]?'on':''}" onclick="setModo('${m[0]}')"><b>${m[1]}</b><small>${m[2]}</small></button>`).join('')}</div>
- ${modo=='fuera'?modoInfo():mesasBar()}
- <div class="two"><div><div class="busq"><input id="busq" type="search" placeholder="🔍 Buscar producto…" value="${esc(bq)}" oninput="bq=this.value;busF=true;draw()" autocomplete="off">${bq?`<button class="g" aria-label="Borrar búsqueda" onclick="bq='';draw()">✕</button>`:''}<button class="${agMode?'p':''}" style="white-space:nowrap" onclick="agMode=!agMode;draw()">🚫 Agotados</button></div><div class="tabs ctabs${bq?' dim':''}">${CATS.map((c,i)=>`<button class="${c==cat&&!bq?'on':''}" style="--c:${ccol(c)}" onclick="cat=CATS[${i}];bq='';draw()">${esc(c)}</button>`).join('')}</div>
+ const modoSel=`<div class="modo">${[['local','🏠 Pedido local','Mesas y para llevar'],['fuera','🛵 Pedido por fuera','Reparto · precio libre']].map(m=>`<button class="${modo==m[0]?'on':''}" onclick="setModo('${m[0]}')"><b>${m[1]}</b><small>${m[2]}</small></button>`).join('')}</div>`;
+ if(pstep=='donde')return `<div class="paso"><span class="pn">1</span><b>¿Dónde es el pedido?</b></div>${modoSel}${modo=='fuera'?modoInfo()+`<button class="p big2" onclick="pstep='prod';draw();window.scrollTo(0,0)">🛵 Empezar pedido por fuera</button>`:mesasBar()}`;
+ const prods=bq.trim()?S.products.filter(p=>p.a&&norm(p.n).includes(norm(bq))):cat=='⭐'?top:S.products.filter(p=>p.a&&p.c==cat),lines=cartLines();
+ const tot=lines.reduce((a,l)=>a+l.pu*l.q,0),ab=destino(),dis=lines.length?'':'disabled';
+ const tabs=(top.length?[['⭐','⭐ Más pedidos','#b8860b']]:[]).concat(CATS.map(c=>[c,c,ccol(c)]));
+ return `<div class="dest"><button class="g" onclick="pstep='donde';addTo=null;draw();window.scrollTo(0,0)">← Cambiar</button><span><b>${mlab(mesa)}</b><small>${ab?'Agregando al pedido N° '+pnum(ab.os[0]):'Nuevo pedido'}</small></span><span class="pn" style="margin-left:auto">2</span></div>
+ <div class="two"><div><div class="busq"><input id="busq" type="search" placeholder="🔍 Buscar producto…" value="${esc(bq)}" oninput="bq=this.value;busF=true;draw()" autocomplete="off">${bq?`<button class="g" aria-label="Borrar búsqueda" onclick="bq='';draw()">✕</button>`:''}<button class="${agMode?'p':''}" style="white-space:nowrap" onclick="agMode=!agMode;draw()">🚫 Agotados</button></div>
+ <div class="tabs ctabs${bq?' dim':''}">${tabs.map((t,i)=>`<button class="${t[0]==cat&&!bq?'on':''}" style="--c:${t[2]}" onclick="cat=${JSON.stringify(t[0]).replace(/"/g,"'")};bq='';draw()">${esc(t[1])}</button>`).join('')}</div>
  ${gridHTML(prods)}</div>
  <div><div class="card" id="cart"><div class="row" style="padding:0 0 4px"><b>${ab?`Agregar al pedido N° ${pnum(ab.os[0])} · ${mlab(mesa)}`:`Nuevo pedido · ${mlab(mesa)}`}</b>${lines.length?`<span style="display:flex;gap:2px;flex:none"><button class="g" title="Ver en grande" aria-label="Ver en grande" onclick="renderZoom()">🔍</button><button class="g" style="color:#c0392b" title="Vaciar pedido" onclick="vaciar()">🗑️</button></span>`:''}</div>
  ${ab?`<p class="hint" style="margin:4px 0">Este pedido sigue abierto: lo que envíes se suma a él.</p>`:''}
@@ -409,23 +521,22 @@ function mozoPedir(){
  <button class="p" style="width:100%;margin-top:8px" ${dis} onclick="enviar(false)">Enviar a cocina</button>
  <button style="width:100%;margin-top:8px" ${dis} onclick="enviar(true)">Entregar directo (sin cocina)</button>
  <button style="width:100%;margin-top:8px;border-color:#d9a400" ${dis} onclick="enviar(true,true)">📝 Entregar y cobrar después</button></div></div></div>
- ${listaPedidos()}
- ${lines.length?`<div class="mbar"><span><b>${lines.reduce((a,l)=>a+l.q,0)}</b> productos · <b>${money(tot)}</b></span><button onclick="renderZoom()">Ver pedido</button></div>`:''}`;
+ ${lines.length?`<div class="mbar"><span><b>${lines.reduce((a,l)=>a+l.q,0)}</b> productos · <b>${money(tot)}</b></span><button onclick="renderZoom()">Ver pedido ›</button></div>`:''}`;
 }
 const mlab=m=>m>0?'Mesa '+m:m==-1?'🛵 Por fuera':'🛍️ Para llevar',mcorto=m=>m>0?m:m==-1?'Fuera':'Llevar',mtxt=m=>m>0?'Mesa '+m:m==-1?'Por fuera':'Para llevar',tipoTxt=o=>o.mesa==-1?'Por fuera':'Local',tipoTag=o=>o.mesa==-1?'<span class="chip" style="--c:#6f52c0">🛵 Por fuera</span>':'<span class="chip" style="--c:#12859a">🏠 Local</span>';
 function destino(){if(addTo){const c=cuentasAbiertas().find(x=>x.k==addTo);if(c)return c;addTo=null}return mesa>0?cuentaDe(mesa):null}
 function setMesas(v){const n=Math.max(1,Math.min(60,parseInt(v)||8));S.mesas=n;if(mesa>n)mesa=1;save();draw()}
 function mesasBar(){const n=S.mesas||8;if(mesa>n)mesa=1;let libres=0,b='';
  for(let i=1;i<=n;i++){const c=cuentaDe(i),t=c?c.os.reduce((a,o)=>a+total(o),0):0;if(!c)libres++;
-  b+=`<button class="mb ${c?'ocu':'lib'} ${mesa===i&&!addTo?'on':''}" onclick="mesa=${i};addTo=null;draw()"><b>Mesa ${i}</b><small>${c?'Ocupada · '+money(t):'Libre'}</small></button>`}
+  b+=`<button class="mb ${c?'ocu':'lib'} " onclick="mesa=${i};addTo=null;pstep='prod';draw();window.scrollTo(0,0)"><b>Mesa ${i}</b><small>${c?'Ocupada · '+money(t):'Libre'}</small></button>`}
  const ll=cuentasAbiertas().filter(c=>!c.os[0].mesa&&!c.os.some(o=>o.fiado)).length;
  return `<div class="mhead"><b>Mesas</b><span class="hint"><i class="dot" style="background:var(--ok)"></i>${libres} libre${libres==1?'':'s'} <i class="dot" style="background:#d9a400;margin-left:10px"></i>${n-libres} ocupada${n-libres==1?'':'s'}</span></div>
- <div class="mesas"><button class="mb llevar ${mesa===0&&!addTo?'on':''}" onclick="mesa=0;addTo=null;draw()"><b>🛍️ Para llevar</b><small>${ll?ll+' abierto(s)':'Sin mesa'}</small></button>${b}</div>`}
+ <div class="mesas"><button class="mb llevar " onclick="mesa=0;addTo=null;pstep='prod';draw();window.scrollTo(0,0)"><b>🛍️ Para llevar</b><small>${ll?ll+' abierto(s)':'Sin mesa'}</small></button>${b}</div>`}
 function cuentaCard(c){const o0=c.os[0],tot=c.os.reduce((a,o)=>a+total(o),0);
  return `<div class="card"><div class="row"><span><b>Pedido N° ${pnum(o0)} · ${mlab(o0.mesa)}${tagP(o0)}</b><div class="hint">${o0.mozo?'Atiende: '+esc(o0.mozo):''}${o0.cliente?(o0.mozo?' · ':'')+'Cliente: '+esc(o0.cliente):''}</div></span><b style="font-size:20px;white-space:nowrap">${money(tot)}</b></div>
  ${fiadoInfo(c.os)}
  ${c.os.map(o=>`<div class="row" style="border-top:1px dashed var(--bd)"><span class="hint">${hhmm(o.t0)} · ${o.items.map(i=>i.q+' '+esc(i.n)).join(', ')}</span><span style="display:flex;gap:4px;align-items:center;flex:none">${o.prueba&&!S.practica&&(o.st=='nuevo'||o.st=='prep')?`<button class="g" onclick="simCocina(${o.id})">🎓 Simular cocina</button>`:''}${o.st=='listo'?`<button class="p" onclick="avanzar(${o.id})">Entregar</button>`:`<span class="tag">${o.st=='anulado'?'Anulado':o.dir?'Directo':stTxt[o.st]}</span>`}${o.st!='anulado'?`<button class="g" title="Corregir cantidades" aria-label="Corregir" onclick="editEnvio(${o.id})">✏️</button>`:''}${o.st!='anulado'?`<button class="g" title="Anular este envío" aria-label="Anular este envío" onclick="anular([${o.id}])">✕</button>`:''}</span></div>`).join('')}
- <div class="row" style="flex-wrap:wrap;justify-content:flex-end;margin-top:6px"><button onclick="verCuenta(${c.k})">Ver detalle</button><button onclick="mesa=${o0.mesa||0};modo='${o0.mesa==-1?'fuera':'local'}';addTo=${c.k};mtab='pedir';draw();document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Agregar</button><button style="color:#c0392b" onclick="anular(${JSON.stringify(c.os.map(o=>o.id))},true)">Anular pedido</button>${esFiado(c)?'':`<button style="border-color:#d9a400" onclick="dejarPend(${c.k})">📝 Cobrar después</button>`}<button class="p" onclick="cobrar(${c.k})">💰 ${o0.mesa>0?'Cobrar y liberar mesa':'Cobrar y cerrar pedido'}</button></div></div>`}
+ <div class="row" style="flex-wrap:wrap;justify-content:flex-end;margin-top:6px"><button onclick="verCuenta(${c.k})">Ver detalle</button><button onclick="mesa=${o0.mesa||0};modo='${o0.mesa==-1?'fuera':'local'}';addTo=${c.k};mtab='pedir';pstep='prod';draw();document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Agregar</button><button style="color:#c0392b" onclick="anular(${JSON.stringify(c.os.map(o=>o.id))},true)">Anular pedido</button>${esFiado(c)?'':`<button style="border-color:#d9a400" onclick="dejarPend(${c.k})">📝 Cobrar después</button>`}<button class="p" onclick="cobrar(${c.k})">💰 ${o0.mesa>0?'Cobrar y liberar mesa':'Cobrar y cerrar pedido'}</button></div></div>`}
 function verCuenta(k){const os=S.orders.filter(o=>ck(o)==k).sort((a,b)=>a.t0-b.t0);if(!os.length)return;
  const o0=os[0],tot=os.reduce((a,o)=>a+total(o),0),pg=os.find(o=>o.pago);
  modal(`<div class="row"><b style="font-size:22px">Pedido N° ${pnum(o0)}</b><button class="g" onclick="cerrarModal()">Cerrar ✕</button></div>
@@ -453,7 +564,7 @@ function anular(ids,todo){const os=S.orders.filter(o=>ids.includes(o.id)&&o.st!=
  const enCocina=os.some(o=>o.st=='prep'||o.st=='listo');
  let m=prompt((todo?'¿Anular TODO el pedido?':'¿Anular este envío ('+os[0].items.map(i=>i.q+' '+i.n).join(', ')+')?')+(enCocina?'\nOjo: cocina ya lo empezó a preparar.':'')+'\n\nEscribe el motivo de la anulación:');
  while(m!==null&&!m.trim())m=prompt('El motivo es obligatorio. ¿Por qué se anula?');
- if(m===null)return;const now=Date.now();os.forEach(o=>{o.st='anulado';o.ta=now;if(m.trim())o.motivo=m.trim()});
+ if(m===null)return;const now=Date.now();os.forEach(o=>{o.st='anulado';o.ta=now;o.anuladoPor=myName;if(m.trim())o.motivo=m.trim()});
  const k=ck(os[0]),rest=S.orders.filter(o=>ck(o)==k&&!o.cerrada);if(todo||rest.every(o=>o.st=='anulado'))rest.forEach(o=>o.cerrada=true);
  save();draw()}
 
@@ -491,7 +602,7 @@ function enviar(dir,fiado){const items=cartLines().map(l=>({n:l.p.n,p:l.pu,q:l.q
  if(dir){o.st='entregado';o.dir=true;o.t3=now}else o.st='nuevo';
  S.orders.push(o);
  if(fiado)S.orders.filter(x=>ck(x)==o.cuenta&&!x.cerrada).forEach(x=>{x.fiado=true;x.fiadoPor=myName;x.tf=now;x.cliente=nom});
- addTo=null;save();cart={};cartP={};nota='';cli='';cerrarModal();draw();if(dir&&!fiado&&!ab&&mesa<=0)cobrar(o.cuenta)}
+ addTo=null;save();cart={};cartP={};nota='';cli='';cerrarModal();pstep='donde';draw();window.scrollTo(0,0);toast((dir?(fiado?'📝 Entregado · queda pendiente de cobro':'✅ Entregado'):'✅ Enviado a cocina')+' · '+mlab(o.mesa).replace(/^\S+ /,m=>m));if(dir&&!fiado&&!ab&&mesa<=0)cobrar(o.cuenta)}
 function dejarPend(k){const os=S.orders.filter(o=>ck(o)==k&&!o.cerrada);if(!os.length)return;
  let nom=(os[0].cliente||'').trim();nom=(prompt('¿A nombre de quién queda pendiente de cobro?',nom)||'').trim();if(!nom)return;
  const now=Date.now();os.forEach(o=>{o.fiado=true;o.fiadoPor=myName;o.tf=now;o.cliente=nom});save();draw()}
@@ -531,11 +642,8 @@ function cocinaDia(){const os=S.orders.filter(o=>!o.dir&&modoHoy(o)).sort((a,b)=
 setInterval(()=>{if(rv()=='cocina'&&ktab=='cola'&&!document.getElementById('mdl'))draw()},15000);
 
 /* ===== ADMIN ===== */
-function admin(){return seg([['prod','🍽️ Productos'],['rep','📊 Reportes'],['hist','🗂️ Historial'],['cob','🕒 Por cobrar'],['per','👥 Personal']],atab,'atab').replace('class="seg"','class="seg nav"')+(atab=='prod'?prodTab():atab=='rep'?repTab():atab=='per'?perTab():atab=='cob'?cobTab():histTab())}
 function prodTab(){
  return `${agCard()}<div class="card"><b>Agregar producto</b><div class="row" style="flex-wrap:wrap"><input id="nn" placeholder="Nombre" style="flex:2;min-width:150px"><select id="nc" style="flex:1;min-width:110px">${CATS.map(c=>`<option>${esc(c)}</option>`).join('')}</select><input id="np" type="number" step="0.5" min="0" placeholder="Precio" style="flex:1;min-width:80px"><button class="p" onclick="addProd()">Agregar</button></div></div>
- <div class="card" style="border-left:5px solid #d9a400"><div class="row" style="flex-wrap:wrap"><span><b>🎓 Modo práctica (capacitación)</b><div class="hint">Para practicar <b>todos a la vez</b> (antes de abrir). Para capacitar a <b>un solo mozo nuevo</b> mientras los demás trabajan normal, ve a <b>👥 Personal</b> → <b>🎓 Poner en práctica</b>.${(S.prac||[]).length?'<br>En práctica ahora: <b>'+S.prac.map(esc).join(', ')+'</b>':''}</div></span><span style="display:flex;gap:8px;flex-wrap:wrap">${S.practica?'<button onclick="setPractica(false)">Desactivar</button>':'<button class="p" onclick="setPractica(true)">Activar práctica</button>'}${S.orders.some(o=>o.prueba)?'<button class="g" style="color:#c0392b" onclick="borrarPruebas()">Borrar pedidos de práctica</button>':''}</span></div></div>
- <div class="card"><div class="row" style="flex-wrap:wrap"><span><b>Mesas del local</b><div class="hint">Cuántas mesas aparecen en la pantalla del mozo.</div></span><input type="number" min="1" max="60" value="${S.mesas||8}" style="width:100px" onchange="setMesas(this.value)"></div></div>
  ${catCard()}
  <div class="card tw"><table class="pt"><tr><th>Foto / ícono</th><th>Nombre</th><th>Categoría</th><th>Precio (S/)</th><th>Activo</th></tr>
  ${S.products.map(p=>`<tr><td><label class="thumb">${p.img?`<img src="${p.img}" alt="">`:'📷'}<input type="file" accept="image/*" hidden onchange="foto(${p.id},this.files[0])"></label>${p.img?`<button class="g" style="min-height:24px;padding:0" onclick="upd(${p.id},'img','');draw()">Quitar</button>`:''}<input class="emi" value="${esc(p.emo||'')}" placeholder="ícono" maxlength="4" title="Ícono opcional (emoji)" aria-label="Ícono" onchange="upd(${p.id},'emo',this.value.trim());draw()"></td><td>${isAg(p)?'<span class="chip" style="--c:#c0392b;margin-bottom:4px">🚫 Agotado hoy</span>':''}<input value="${esc(p.n)}" onchange="upd(${p.id},'n',this.value)"></td><td><select onchange="upd(${p.id},'c',this.value)">${CATS.map(c=>`<option ${c==p.c?'selected':''}>${esc(c)}</option>`).join('')}</select></td><td><input type="number" step="0.5" min="0" value="${p.p}" onchange="upd(${p.id},'p',+this.value)"></td><td><input type="checkbox" ${p.a?'checked':''} onchange="upd(${p.id},'a',this.checked)" style="width:auto"></td></tr>`).join('')}</table></div>
@@ -596,7 +704,7 @@ function cobTab(){const todas=agrupar(S.orders.filter(o=>!o.cerrada&&fvp(o))).fi
  let cs=todas;if(cobSolo)cs=cs.filter(esFiado);if(cobCli)cs=cs.filter(c=>(c.o0.cliente||'')==cobCli);if(cobMoz)cs=cs.filter(c=>c.mozo==cobMoz);
  const tot=cs.reduce((a,c)=>a+c.tot,0),fi=todas.filter(esFiado),tf=fi.reduce((a,c)=>a+c.tot,0);
  const sel=(v,arr,set,todos)=>`<select onchange="${set}=this.value;draw()"><option value="">${todos}</option>${arr.map(x=>`<option ${v==x?'selected':''}>${esc(x)}</option>`).join('')}</select>`;
- return vpSeg()+`<div class="kpi">${kpi('🕒',todas.length,'Pedidos por cobrar','#a8740a')}${kpi('💰',money(todas.reduce((a,c)=>a+c.tot,0)),'Monto total por cobrar','#a8740a')}${kpi('📝',fi.length,'Dejados pendientes (fiado)','#b94a28')}${kpi('💸',money(tf),'Monto pendiente (fiado)','#b94a28')}</div>
+ return `<div class="kpi">${kpi('🕒',todas.length,'Pedidos por cobrar','#a8740a')}${kpi('💰',money(todas.reduce((a,c)=>a+c.tot,0)),'Monto total por cobrar','#a8740a')}${kpi('📝',fi.length,'Dejados pendientes (fiado)','#b94a28')}${kpi('💸',money(tf),'Monto pendiente (fiado)','#b94a28')}</div>
  <div class="card"><div class="row" style="flex-wrap:wrap;align-items:flex-end">
  <label style="flex:2;min-width:160px"><span class="hint">Cliente</span>${sel(cobCli,clis,'cobCli','Todos los clientes')}</label>
  <label style="flex:2;min-width:160px"><span class="hint">Mozo</span>${sel(cobMoz,mozs,'cobMoz','Todos los mozos')}</label>
@@ -617,32 +725,50 @@ function setPractica(on){
  S.practica=false;const n=new Set(S.orders.filter(o=>o.prueba).map(ck)).size;
  if(n&&confirm('Modo práctica desactivado.\n\n¿Quieres borrar también los '+n+' pedido(s) de práctica? (Recomendado, así no ocupan mesas ni aparecen pendientes).'))S.orders=S.orders.filter(o=>!o.prueba);
  save();draw()}
+function verPracticas(){const cs=agrupar(S.orders.filter(o=>o.prueba));
+ modal(`<div class="row"><b style="font-size:20px">🎓 Pedidos de práctica (${cs.length})</b><button class="g" onclick="cerrarModal()">Cerrar ✕</button></div>
+ <p class="hint">No cuentan en reportes, caja ni historial. Solo para revisar cómo practicó tu personal.</p>
+ ${cs.map(c=>`<div class="row" style="border-top:1px dashed var(--bd);flex-wrap:wrap"><span><b>${pnum(c.o0)} · ${mlab(c.o0.mesa)}</b><div class="hint">${fec(c.t0)} ${hhmm(c.t0)} · ${esc(c.mozo||'—')} · ${c.os.map(o=>o.items.map(i=>i.q+' '+esc(i.n)).join(', ')).join(' + ')}</div></span><span style="display:flex;gap:8px;align-items:center">${estadoCuenta(c)}<b>${money(c.tot)}</b></span></div>`).join('')||'<p class="hint">No hay pedidos de práctica.</p>'}
+ ${cs.length?'<div style="text-align:right;margin-top:10px"><button class="g" style="color:#c0392b" onclick="cerrarModal();borrarPruebas()">Borrar todos los de práctica</button></div>':''}`)}
 function borrarPruebas(){const n=new Set(S.orders.filter(o=>o.prueba).map(ck)).size;if(!n)return alert('No hay pedidos de práctica.');
  if(!confirm('Se borrarán '+n+' pedido(s) de práctica. Los pedidos reales no se tocan. ¿Continuar?'))return;S.orders=S.orders.filter(o=>!o.prueba);save();draw()}
-function enPeriodo(t){const now=new Date(),d=dkey(t),h=dkey(now);
- if(rper=='hoy')return d==h;if(rper=='ayer')return d==dkey(now.getTime()-864e5);
- if(rper=='7d')return t>=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6).getTime();if(rper=='mes')return d.slice(0,7)==h.slice(0,7);return true}
+function enPeriodo(t,p){p=p||rper;const now=new Date(),d=dkey(t),h=dkey(now);
+ if(p=='hoy')return d==h;if(p=='ayer')return d==dkey(now.getTime()-864e5);
+ if(p=='7d')return t>=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6).getTime();if(p=='mes')return d.slice(0,7)==h.slice(0,7);return true}
 function repTab(){
  const cs=agrupar(S.orders.filter(fvp)).filter(c=>enPeriodo(c.t0)),r=resumen(cs),tk=r.nc?r.cob/r.nc:0,base=r.cob||1;
  const by={};cs.forEach(c=>c.os.filter(o=>o.st!='anulado').forEach(o=>o.items.forEach(i=>{by[i.n]=by[i.n]||{q:0,m:0};by[i.n].q+=i.q;by[i.n].m+=i.q*i.p})));
- const top=Object.entries(by).sort((a,b)=>b[1].q-a[1].q).slice(0,8),mx=top.length?top[0][1].q:1;
+ const top=Object.entries(by).sort((a,b)=>b[1].q-a[1].q).slice(0,10),mx=top.length?top[0][1].q:1;
  const pm={};cs.filter(c=>!c.anulada).forEach(c=>{const x=pm[c.mozo||'—']=pm[c.mozo||'—']||{n:0,cob:0,m:{efectivo:0,yape:0,plin:0}};x.n++;if(c.cobrado){x.cob+=c.tot;x.m[c.pago]=(x.m[c.pago]||0)+c.tot}});
- return vpSeg()+seg([['hoy','Hoy'],['ayer','Ayer'],['7d','Últimos 7 días'],['mes','Este mes'],['todo','Todo']],rper,'rper')+`
- <div class="kpi">${kpisPago(r)}${kpi('🏠',money(cs.filter(c=>c.cobrado&&c.o0.mesa!=-1).reduce((a,c)=>a+c.tot,0)),'Ventas local','#12859a')}${kpi('🛵',money(cs.filter(c=>c.cobrado&&c.o0.mesa==-1).reduce((a,c)=>a+c.tot,0)),'Ventas por fuera','#6f52c0')}${kpi('🧾',r.n,'Pedidos','#6f52c0')}${kpi('🎯',money(tk),'Ticket promedio','#12859a')}${kpi('🕒',money(r.abierto),'Por cobrar · '+(r.nab||0)+' pedido(s)','#a8740a')+kpi('↕️',(()=>{let v=0;cs.forEach(c=>c.os.filter(o=>o.st!='anulado').forEach(o=>o.items.forEach(i=>{if(i.b!=null)v+=(i.p-i.b)*i.q})));return (v<0?'− ':v>0?'+ ':'')+money(Math.abs(v))})(),'Variación por cambio de precio','#b94a28')}${kpi('❌',r.anulN,'Pedidos anulados · '+money(r.anulM),'#c0392b')}</div>
- <div class="card"><b>Métodos de pago</b>${r.cob?`<div class="stack">${Object.entries(PAGOS).map(([k,v])=>r.m[k]?`<span style="width:${r.m[k]/base*100}%;background:${v[2]}"></span>`:'').join('')}</div>
- <div class="leg">${Object.entries(PAGOS).map(([k,v])=>`<span><i style="background:${v[2]}"></i>${v[0]} <b>${Math.round(r.m[k]/base*100)}%</b></span>`).join('')}</div>`:'<p class="hint">Aún no hay cobros en este periodo.</p>'}</div>
- <div class="g2"><div class="card tw"><b>Desempeño por mozo</b><table style="min-width:420px;margin-top:6px"><tr><th>Mozo</th><th>Pedidos</th><th>Cobrado</th><th>Efectivo</th><th>Yape/Plin</th></tr>
- ${Object.entries(pm).sort((a,b)=>b[1].cob-a[1].cob).map(([n,x])=>`<tr><td><b>${esc(n)}</b></td><td>${x.n}</td><td>${money(x.cob)}</td><td>${money(x.m.efectivo)}</td><td>${money(x.m.yape+x.m.plin)}</td></tr>`).join('')||'<tr><td colspan="5" class="hint">Sin pedidos en este periodo.</td></tr>'}</table></div>
- <div class="card"><b>Más vendidos</b>${top.map(t=>`<div style="margin-top:10px"><div class="row" style="padding:0 0 4px"><span>${esc(t[0])}</span><span class="hint"><b style="color:var(--tx)">${t[1].q}</b> · ${money(t[1].m)}</span></div><div class="bar" style="width:${t[1].q/mx*100}%"></div></div>`).join('')||'<p class="hint">Aún no hay ventas en este periodo.</p>'}</div></div>`+agReporte()+picos(cs);
+ const loc=cs.filter(c=>c.cobrado&&c.o0.mesa!=-1).reduce((a,c)=>a+c.tot,0),fue=cs.filter(c=>c.cobrado&&c.o0.mesa==-1).reduce((a,c)=>a+c.tot,0);
+ let vari=0;cs.forEach(c=>c.os.filter(o=>o.st!='anulado').forEach(o=>o.items.forEach(i=>{if(i.b!=null)vari+=(i.p-i.b)*i.q})));
+ const corr=cs.reduce((a,c)=>a+c.os.filter(o=>o.corr).length,0),pct=k=>Math.round(r.m[k]/base*100);
+ const agN=(S.aglog||[]).filter(x=>enPeriodo(x.t)).length,pic=picos(cs);
+ const sec=(id,tit,res,body)=>`<details class="acc" ${openSec[id]?'open':''} ontoggle="openSec['${id}']=this.open"><summary><b>${tit}</b><span class="hint">${res}</span></summary><div class="accb">${body}</div></details>`;
+ return `<div class="sec"><h3>📊 Análisis</h3></div>`+seg([['hoy','Hoy'],['ayer','Ayer'],['7d','7 días'],['mes','Este mes'],['todo','Todo']],rper,'rper')+`
+ <div class="kpi">${kpi('💰',money(r.cob),'Total cobrado')}${kpi('🧾',r.n,'Pedidos','#6f52c0')}${kpi('🎯',money(tk),'Ticket promedio','#12859a')}${kpi('🕒',money(r.abierto),'Por cobrar · '+(r.nab||0)+' pedido(s)','#a8740a')}</div>`
+ +sec('pag','💳 Pagos y tipo de venta',r.cob?`Efectivo ${pct('efectivo')}% · Yape ${pct('yape')}% · Plin ${pct('plin')}%`:'Sin cobros',
+  `<div class="kpi">${Object.entries(PAGOS).map(([k,v])=>kpi(v[1],money(r.m[k]),v[0],v[2])).join('')}${kpi('🏠',money(loc),'Ventas local','#12859a')}${kpi('🛵',money(fue),'Ventas por fuera','#6f52c0')}</div>
+  ${r.cob?`<div class="stack">${Object.entries(PAGOS).map(([k,v])=>r.m[k]?`<span style="width:${r.m[k]/base*100}%;background:${v[2]}"></span>`:'').join('')}</div><div class="leg">${Object.entries(PAGOS).map(([k,v])=>`<span><i style="background:${v[2]}"></i>${v[0]} <b>${pct(k)}%</b></span>`).join('')}</div>`:''}`)
+ +sec('moz','👥 Desempeño por mozo',Object.keys(pm).length+' mozo(s)',
+  `<div class="tw"><table style="min-width:420px"><tr><th>Mozo</th><th>Pedidos</th><th>Cobrado</th><th>Efectivo</th><th>Yape/Plin</th></tr>${Object.entries(pm).sort((a,b)=>b[1].cob-a[1].cob).map(([n,x])=>`<tr><td><b>${esc(n)}</b></td><td>${x.n}</td><td>${money(x.cob)}</td><td>${money(x.m.efectivo)}</td><td>${money(x.m.yape+x.m.plin)}</td></tr>`).join('')||'<tr><td colspan="5" class="hint">Sin pedidos en este periodo.</td></tr>'}</table></div>`)
+ +sec('prod','🍽️ Productos más vendidos',top.length?'Top: '+esc(top[0][0]):'Sin ventas',
+  top.map(t=>`<div style="margin-top:10px"><div class="row" style="padding:0 0 4px"><span>${esc(t[0])}</span><span class="hint"><b style="color:var(--tx)">${t[1].q}</b> · ${money(t[1].m)}</span></div><div class="bar" style="width:${t[1].q/mx*100}%"></div></div>`).join('')||'<p class="hint">Aún no hay ventas en este periodo.</p>')
+ +sec('anu','❌ Anulaciones, correcciones y precios',`${r.anulN} anulado(s) · ${corr} corregido(s)`,
+  `<div class="kpi">${kpi('❌',r.anulN,'Pedidos anulados · '+money(r.anulM),'#c0392b')}${kpi('✏️',corr,'Envíos corregidos','#2b7fd0')}${kpi('↕️',(vari<0?'− ':vari>0?'+ ':'')+money(Math.abs(vari)),'Variación por cambio de precio','#b94a28')}</div><button onclick="atab='reg';regT='anul';regPer=rper;draw();window.scrollTo(0,0)">Ver detalle en 🧾 Registros ›</button>`)
+ +(pic?sec('hor','⏰ Horas pico y días fuertes','Toca para ver',pic):'')
+ +(agN?sec('ag','🚫 Productos que se agotaron',agN+' registro(s)',agReporte()):'');
 }
+function ajustesTab(){return `<div class="card" style="border-left:5px solid #d9a400"><div class="row" style="flex-wrap:wrap"><span><b>🎓 Modo práctica (capacitación)</b><div class="hint">Para practicar <b>todos a la vez</b> (antes de abrir). Para capacitar a <b>un solo mozo nuevo</b> mientras los demás trabajan normal, ve a <b>👥 Personal</b> → <b>🎓 Poner en práctica</b>.${(S.prac||[]).length?'<br>En práctica ahora: <b>'+S.prac.map(esc).join(', ')+'</b>':''}</div></span><span style="display:flex;gap:8px;flex-wrap:wrap">${S.practica?'<button onclick="setPractica(false)">Desactivar</button>':'<button class="p" onclick="setPractica(true)">Activar práctica</button>'}${S.orders.some(o=>o.prueba)?`<button onclick="verPracticas()">Ver pedidos de práctica (${new Set(S.orders.filter(o=>o.prueba).map(ck)).size})</button><button class="g" style="color:#c0392b" onclick="borrarPruebas()">Borrar pedidos de práctica</button>`:''}</span></div></div>
+ <div class="card"><div class="row" style="flex-wrap:wrap"><span><b>Mesas del local</b><div class="hint">Cuántas mesas aparecen en la pantalla del mozo.</div></span><input type="number" min="1" max="60" value="${S.mesas||8}" style="width:100px" onchange="setMesas(this.value)"></div></div>`}
+
 function histList(){
- let os=S.orders.filter(fvp).sort((a,b)=>ck(b)-ck(a)||a.t0-b.t0);
- if(htipo)os=os.filter(o=>(o.mesa==-1)==(htipo=='fuera'));if(hd1)os=os.filter(o=>dkey(o.t0)>=hd1);if(hd2)os=os.filter(o=>dkey(o.t0)<=hd2);
- const q=hq.trim().toLowerCase();if(q)os=os.filter(o=>(o.cliente||'').toLowerCase().includes(q)||(o.mozo||'').toLowerCase().includes(q));
+ let os=S.orders.filter(fvp).filter(o=>enPeriodo(o.t0,regPer)).sort((a,b)=>ck(b)-ck(a)||a.t0-b.t0);
+ if(htipo)os=os.filter(o=>(o.mesa==-1)==(htipo=='fuera'));const q=norm(regQ);if(q)os=os.filter(o=>norm([o.cliente,o.mozo,o.items.map(i=>i.n).join(' ')].join(' ')).includes(q));
  return os}
 function histTab(){
  const os=histList(),tot=os.reduce((a,o)=>a+total(o),0);
- return vpSeg()+`<div class="card"><div class="row" style="flex-wrap:wrap;align-items:flex-end">
+ return `<div class="card"><div class="row" style="flex-wrap:wrap;align-items:flex-end">
  <label style="flex:1;min-width:130px"><span class="hint">Desde</span><input type="date" value="${hd1}" onchange="hd1=this.value;draw()"></label>
  <label style="flex:1;min-width:130px"><span class="hint">Hasta</span><input type="date" value="${hd2}" onchange="hd2=this.value;draw()"></label>
  <label style="flex:2;min-width:160px"><span class="hint">Buscar cliente o mozo</span><input value="${esc(hq)}" placeholder="Nombre y Enter" onchange="hq=this.value;draw()"></label>
