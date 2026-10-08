@@ -140,7 +140,7 @@ async function enter(u){const {data}=await sb.from('perfiles').select('rol,usuar
  if(!data){await sb.auth.signOut();alert('Este usuario no tiene un perfil asignado.');return draw()}
  me=u;user=data.rol;myUser=data.usuario||(u.email||'').split('@')[0];{const st=getNom(myUser);if(user=='admin'){myName=myUser;sesIni=Date.now()}else if(st&&st.d==dkey(Date.now())){myName=st.n;sesIni=st.i||Date.now()}else{myName='';await chequeoUso()}}primera=true;vNuevo.clear();vListo.clear();regSW();pantalla();await pull();clearInterval(tm);tm=setInterval(pull,3000);
  if(ch)sb.removeChannel(ch);ch=sb.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'orders'},pull).subscribe();draw()}
-async function salir(){clearInterval(tm);try{if(myUser&&myName)await sb.from('sesiones').update({visto:0}).eq('usuario',myUser)}catch(e){}myName='';myUser='';enUso=null;P=null;if(ch)sb.removeChannel(ch);await sb.auth.signOut();me=null;user=null;vista='admin';S.orders=[];snap={};draw()}
+async function salir(){clearInterval(tm);try{if(myUser&&myName){await sb.from('sesiones').update({visto:0}).eq('usuario',myUser);if(user!='admin')await sb.from('turnos').update({fin:Date.now()}).eq('usuario',myUser).eq('inicio',sesIni)}}catch(e){}myName='';myUser='';enUso=null;P=null;if(ch)sb.removeChannel(ch);await sb.auth.signOut();me=null;user=null;vista='admin';S.orders=[];snap={};draw()}
 async function cambiarClave(){const p=prompt('Nueva contraseña (mínimo 6 caracteres):');if(!p)return;
  const {error}=await sb.auth.updateUser({password:p});alert(error?'No se pudo cambiar: '+error.message:'Contraseña cambiada.')}
 /* ===== PERSONAL: nombre de quien usa cada usuario ===== */
@@ -155,7 +155,15 @@ async function confNom(){const n=($('nom').value||'').trim().replace(/\s+/g,' ')
  myName=n;sesIni=Date.now();setNom(myUser,{n,d:dkey(sesIni),i:sesIni});latido(true);
  try{await sb.from('turnos').insert({usuario:myUser,nombre:n,rol:user,inicio:sesIni})}catch(e){}draw()}
 async function cambiarNombre(){if(!confirm('¿Cambiar el nombre de quien usa este usuario? Hazlo cuando cambie el turno o la persona.'))return;myName='';setNom(myUser,null);await chequeoUso();enUso=null;draw()}
+let lastExp=0;
+async function chequeoExp(){if(!sb||!me||!myName||user=='admin'||Date.now()-lastExp<10000)return;lastExp=Date.now();
+ try{const {data}=await sb.from('sesiones').select('expulsar').eq('usuario',myUser).maybeSingle();
+  if(data&&data.expulsar&&data.expulsar>sesIni){setNom(myUser,null);await salir();alert('El administrador cerró tu sesión. Vuelve a ingresar si corresponde.')}}catch(e){}}
+async function expulsar(u,n){if(!confirm('¿Sacar a '+(n||u)+' del usuario '+u+'? La app se le cerrará en unos segundos.'))return;
+ const {error}=await sb.from('sesiones').update({expulsar:Date.now(),visto:0}).eq('usuario',u);
+ if(error)return alert('No se pudo. Falta correr en Supabase el script expulsar.sql.');lastP=0;cargarPersonal()}
 function latido(force){if(!sb||!me||!myName)return;const t=Date.now();if(!force&&t-lastLat<30000)return;lastLat=t;
+ try{if(user!='admin')sb.from('turnos').update({fin:t}).eq('usuario',myUser).eq('inicio',sesIni).then(()=>{},()=>{})}catch(e){}
  try{sb.from('sesiones').upsert({usuario:myUser,nombre:myName,rol:user,visto:t,inicio:sesIni}).then(()=>{},()=>{})}catch(e){}}
 /* ===== AVISOS: sonido, vibración y notificación ===== */
 function regSW(){try{if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').then(x=>swReg=x).catch(()=>{})}catch(e){}}
@@ -195,7 +203,7 @@ async function pull(){if(!sb||!me||busy)return;const v=ver;
     const d=x.data.data;S.cats=d.cats;CATS=S.cats;S.products=d.products;S.pid=d.pid;S.mesas=d.mesas||8;cfgSnap=JSON.stringify(d);cfgVer=x.data.ver}}
   else if(user=='admin'){S.cats=[...DEF];CATS=S.cats;S.products=SEED.map((q,i)=>({id:i+1,n:q[0],c:q[1],p:q[2],a:true}));S.pid=SEED.length+1;await push()}
   S.orders=o.data.map(x=>({...x.data,num:x.num})).reverse();snap={};S.orders.forEach(x=>snap[x.id]=JSON.stringify(x));avisos();
-  latido();if(JSON.stringify([S.cats,S.products,S.orders])!==before&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))draw()}catch(e){}}
+  await chequeoExp();latido();if(JSON.stringify([S.cats,S.products,S.orders])!==before&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))draw()}catch(e){}}
 function draw(){
  numerar();
  if(!user&&ONLINE){$('app').innerHTML=loginForm();return}
@@ -394,11 +402,21 @@ function perTab(){if(!ONLINE)return '<p class="hint">Disponible en la versión e
  const us=[...P.per].sort((a,b)=>(ord[a.rol]-ord[b.rol])||String(a.usuario).localeCompare(b.usuario)),act=us.filter(u=>ses[u.usuario]&&ses[u.usuario].visto>now-120000).length;
  const d=pdia||dkey(now),tur=P.tur.filter(t=>dkey(t.inicio)==d);
  return `<div class="kpi">${kpi('🟢',act,'Usuarios en uso ahora','#2a8a56')}${kpi('⚪',us.length-act,'Usuarios libres','#7a8a85')}${kpi('🕘',tur.length,'Turnos iniciados el '+fec(new Date(d+'T12:00').getTime()),'#6f52c0')}</div>
- <div class="card tw"><b>Usuarios</b><table style="margin-top:6px"><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Lo usa</th><th>Desde / última vez</th></tr>
- ${us.map(u=>{const x=ses[u.usuario],on=x&&x.visto>now-120000;return `<tr><td><b>${esc(u.usuario)}</b></td><td>${NAMES[u.rol]||u.rol}</td><td>${on?'<span class="chip" style="--c:#2a8a56">🟢 En uso</span>':'<span class="chip" style="--c:#7a8a85">⚪ Libre</span>'}</td><td>${on?'<b>'+esc(x.nombre||'—')+'</b>':(x&&x.nombre?'<span class="hint">'+esc(x.nombre)+'</span>':'—')}</td><td>${on?'desde '+hhmm(x.inicio||x.visto):(x&&x.inicio?'<span class="hint">'+fec(x.inicio)+' '+hhmm(x.inicio)+'</span>':'—')}</td></tr>`}).join('')}</table>
- <p class="hint" style="margin:8px 0 0">"En uso" = tiene la app abierta (se actualiza cada 30 segundos). Al pulsar Salir queda libre.</p></div>
- <div class="card tw"><div class="row" style="flex-wrap:wrap"><b>Registro de turnos</b><input type="date" value="${d}" style="width:auto" onchange="pdia=this.value;draw()"></div>
- <table style="margin-top:6px"><tr><th>Hora</th><th>Nombre</th><th>Usuario</th><th>Rol</th></tr>${tur.map(t=>`<tr><td>${hhmm(t.inicio)}</td><td><b>${esc(t.nombre)}</b></td><td>${esc(t.usuario)}</td><td>${NAMES[t.rol]||t.rol}</td></tr>`).join('')||'<tr><td colspan="4" class="hint">Nadie inició turno ese día.</td></tr>'}</table></div>`}
+ <div class="card tw"><b>Usuarios</b><table style="margin-top:6px"><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Lo usa</th><th>Desde</th><th></th></tr>
+ ${us.map(u=>{const x=ses[u.usuario],on=x&&x.visto>now-120000;return `<tr><td><b>${esc(u.usuario)}</b></td><td>${NAMES[u.rol]||u.rol}</td><td>${on?'<span class="chip" style="--c:#2a8a56">🟢 En uso</span>':'<span class="chip" style="--c:#7a8a85">⚪ Libre</span>'}</td><td>${on?'<b>'+esc(x.nombre||'—')+'</b>':'—'}</td><td>${on?hhmm(x.inicio||x.visto):'—'}</td><td>${on&&u.rol!='admin'?`<button class="g" style="color:#c0392b;min-height:34px" onclick="expulsar('${esc(u.usuario)}','${esc(x.nombre||'')}')">🚫 Sacar</button>`:''}</td></tr>`}).join('')}</table>
+ <p class="hint" style="margin:8px 0 0">"En uso" = tiene la app abierta ahora. Al salir queda libre y su turno pasa al registro de abajo.</p></div>
+ <div class="card tw"><div class="row" style="flex-wrap:wrap"><b>Registro de turnos</b><span style="display:flex;gap:8px;flex-wrap:wrap"><input type="date" value="${d}" style="width:auto" onchange="pdia=this.value;draw()"><button onclick="expTurnos()">Exportar a Excel</button></span></div>
+ <table style="margin-top:6px"><tr><th>Fecha</th><th>Ingreso</th><th>Salida</th><th>Tiempo</th><th>Nombre</th><th>Usuario</th><th>Rol</th></tr>${tur.map(t=>{const v=turnoInfo(t,ses,now);return `<tr><td>${fec(t.inicio)}</td><td>${hhmm(t.inicio)}</td><td>${v.vivo?'<span class="chip" style="--c:#2a8a56">🟢 En curso</span>':v.fin?hhmm(v.fin):'—'}</td><td>${v.dur}</td><td><b>${esc(t.nombre)}</b></td><td>${esc(t.usuario)}</td><td>${NAMES[t.rol]||t.rol}</td></tr>`}).join('')||'<tr><td colspan="7" class="hint">Nadie inició turno ese día.</td></tr>'}</table></div>`}
+function durTxt(ms){const m=Math.max(0,Math.round(ms/60000)),h=Math.floor(m/60);return h?h+' h '+(m%60)+' min':m+' min'}
+function turnoInfo(t,ses,now){const x=ses[t.usuario],vivo=!!(x&&x.inicio==t.inicio&&x.visto>now-120000),fin=vivo?now:t.fin;return {vivo,fin,dur:fin?durTxt(fin-t.inicio):'—'}}
+async function expTurnos(){if(!P)return;const now=Date.now(),ses={};P.ses.forEach(x=>ses[x.usuario]=x);const d=pdia||dkey(now),tur=P.tur.filter(t=>dkey(t.inicio)==d);
+ if(!tur.length)return alert('No hay turnos ese día.');
+ const rows=[['Fecha','Hora ingreso','Hora salida','Tiempo (min)','Nombre','Usuario','Rol']];
+ tur.forEach(t=>{const v=turnoInfo(t,ses,now);rows.push([fec(t.inicio),hhmm(t.inicio),v.vivo?'En curso':v.fin?hhmm(v.fin):'',v.fin?Math.round((v.fin-t.inicio)/60000):'',t.nombre,t.usuario,NAMES[t.rol]||t.rol])});
+ const fn='turnos_'+d;let data,name;
+ if(window.XLSX){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[12,12,12,12,20,16,14].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Turnos');data=XLSX.write(wb,{type:'array',bookType:'xlsx'});name=fn+'.xlsx'}
+ else{data='\ufeff'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');name=fn+'.csv'}
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data]));a.download=name;document.body.appendChild(a);a.click();a.remove()}
 function enPeriodo(t){const now=new Date(),d=dkey(t),h=dkey(now);
  if(rper=='hoy')return d==h;if(rper=='ayer')return d==dkey(now.getTime()-864e5);
  if(rper=='7d')return t>=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6).getTime();if(rper=='mes')return d.slice(0,7)==h.slice(0,7);return true}
