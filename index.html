@@ -159,7 +159,7 @@ let lastExp=0;
 async function chequeoExp(){if(!sb||!me||!myName||user=='admin'||Date.now()-lastExp<10000)return;lastExp=Date.now();
  try{const {data}=await sb.from('sesiones').select('expulsar').eq('usuario',myUser).maybeSingle();
   if(data&&data.expulsar&&data.expulsar>sesIni){setNom(myUser,null);await salir();alert('El administrador cerró tu sesión. Vuelve a ingresar si corresponde.')}}catch(e){}}
-async function expulsar(u,n){if(!confirm('¿Sacar a '+(n||u)+' del usuario '+u+'? La app se le cerrará en unos segundos.'))return;
+async function expulsar(u,n){if(!confirm('¿Liberar el usuario '+u+'? A '+(n||'quien lo usa')+' se le cerrará la app en unos segundos y el usuario quedará libre.'))return;
  const {error}=await sb.from('sesiones').update({expulsar:Date.now(),visto:0}).eq('usuario',u);
  if(error)return alert('No se pudo. Falta correr en Supabase el script expulsar.sql.');lastP=0;cargarPersonal()}
 function latido(force){if(!sb||!me||!myName)return;const t=Date.now();if(!force&&t-lastLat<30000)return;lastLat=t;
@@ -402,13 +402,19 @@ function perTab(){if(!ONLINE)return '<p class="hint">Disponible en la versión e
  const us=[...P.per].sort((a,b)=>(ord[a.rol]-ord[b.rol])||String(a.usuario).localeCompare(b.usuario)),act=us.filter(u=>ses[u.usuario]&&ses[u.usuario].visto>now-120000).length;
  const d=pdia||dkey(now),tur=P.tur.filter(t=>dkey(t.inicio)==d);
  return `<div class="kpi">${kpi('🟢',act,'Usuarios en uso ahora','#2a8a56')}${kpi('⚪',us.length-act,'Usuarios libres','#7a8a85')}${kpi('🕘',tur.length,'Turnos iniciados el '+fec(new Date(d+'T12:00').getTime()),'#6f52c0')}</div>
- <div class="card tw"><b>Usuarios</b><table style="margin-top:6px"><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Lo usa</th><th>Desde</th><th></th></tr>
- ${us.map(u=>{const x=ses[u.usuario],on=x&&x.visto>now-120000;return `<tr><td><b>${esc(u.usuario)}</b></td><td>${NAMES[u.rol]||u.rol}</td><td>${on?'<span class="chip" style="--c:#2a8a56">🟢 En uso</span>':'<span class="chip" style="--c:#7a8a85">⚪ Libre</span>'}</td><td>${on?'<b>'+esc(x.nombre||'—')+'</b>':'—'}</td><td>${on?hhmm(x.inicio||x.visto):'—'}</td><td>${on&&u.rol!='admin'?`<button class="g" style="color:#c0392b;min-height:34px" onclick="expulsar('${esc(u.usuario)}','${esc(x.nombre||'')}')">🚫 Sacar</button>`:''}</td></tr>`}).join('')}</table>
- <p class="hint" style="margin:8px 0 0">"En uso" = tiene la app abierta ahora. Al salir queda libre y su turno pasa al registro de abajo.</p></div>
- <div class="card tw"><div class="row" style="flex-wrap:wrap"><b>Registro de turnos</b><span style="display:flex;gap:8px;flex-wrap:wrap"><input type="date" value="${d}" style="width:auto" onchange="pdia=this.value;draw()"><button onclick="expTurnos()">Exportar a Excel</button></span></div>
+ <div class="card tw"><b>Usuarios</b><table style="margin-top:6px"><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Lo usa</th><th>Desde</th><th>Acción</th></tr>
+ ${us.map(u=>{const x=ses[u.usuario],on=x&&x.visto>now-120000;return `<tr><td><b>${esc(u.usuario)}</b></td><td>${NAMES[u.rol]||u.rol}</td><td>${on?'<span class="chip" style="--c:#2a8a56">🟢 En uso</span>':'<span class="chip" style="--c:#7a8a85">⚪ Libre</span>'}</td><td>${on?'<b>'+esc(x.nombre||'—')+'</b>':'—'}</td><td>${on?hhmm(x.inicio||x.visto):'—'}</td><td>${on&&u.rol!='admin'?`<button class="g" style="color:#c0392b;min-height:34px" onclick="expulsar('${esc(u.usuario)}','${esc(x.nombre||'')}')">🔓 Liberar</button>`:''}</td></tr>`}).join('')}</table>
+ <p class="hint" style="margin:8px 0 0">"En uso" = tiene la app abierta ahora. El botón 🔓 Liberar aparece en los mozos y cocineros que estén en uso. Al salir o ser liberado, su turno pasa al registro de abajo.</p></div>
+ <div class="card tw"><div class="row" style="flex-wrap:wrap"><b>Registro de turnos</b><span style="display:flex;gap:8px;flex-wrap:wrap"><input type="date" value="${d}" style="width:auto" onchange="pdia=this.value;draw()"><button onclick="expTurnos()">Exportar a Excel</button><button class="g" style="color:#c0392b" onclick="borrarTurnos()">Borrar turnos de este día</button></span></div>
  <table style="margin-top:6px"><tr><th>Fecha</th><th>Ingreso</th><th>Salida</th><th>Tiempo</th><th>Nombre</th><th>Usuario</th><th>Rol</th></tr>${tur.map(t=>{const v=turnoInfo(t,ses,now);return `<tr><td>${fec(t.inicio)}</td><td>${hhmm(t.inicio)}</td><td>${v.vivo?'<span class="chip" style="--c:#2a8a56">🟢 En curso</span>':v.fin?hhmm(v.fin):'—'}</td><td>${v.dur}</td><td><b>${esc(t.nombre)}</b></td><td>${esc(t.usuario)}</td><td>${NAMES[t.rol]||t.rol}</td></tr>`}).join('')||'<tr><td colspan="7" class="hint">Nadie inició turno ese día.</td></tr>'}</table></div>`}
 function durTxt(ms){const m=Math.max(0,Math.round(ms/60000)),h=Math.floor(m/60);return h?h+' h '+(m%60)+' min':m+' min'}
 function turnoInfo(t,ses,now){const x=ses[t.usuario],vivo=!!(x&&x.inicio==t.inicio&&x.visto>now-120000),fin=vivo?now:t.fin;return {vivo,fin,dur:fin?durTxt(fin-t.inicio):'—'}}
+async function borrarTurnos(){if(!P)return;const now=Date.now(),ses={};P.ses.forEach(x=>ses[x.usuario]=x);const d=pdia||dkey(now);
+ const ids=P.tur.filter(t=>dkey(t.inicio)==d&&!turnoInfo(t,ses,now).vivo).map(t=>t.id);
+ if(!ids.length)return alert('No hay turnos terminados para borrar ese día. Los turnos en curso no se borran.');
+ if(!confirm('Se borrarán '+ids.length+' turno(s) del '+fec(new Date(d+'T12:00').getTime())+'. Esta acción no se puede deshacer. ¿Ya exportaste a Excel?'))return;
+ const {error}=await sb.from('turnos').delete().in('id',ids);if(error)return alert('No se pudo borrar. Falta correr en Supabase el script borrar_turnos.sql.');
+ lastP=0;await cargarPersonal();draw()}
 async function expTurnos(){if(!P)return;const now=Date.now(),ses={};P.ses.forEach(x=>ses[x.usuario]=x);const d=pdia||dkey(now),tur=P.tur.filter(t=>dkey(t.inicio)==d);
  if(!tur.length)return alert('No hay turnos ese día.');
  const rows=[['Fecha','Hora ingreso','Hora salida','Tiempo (min)','Nombre','Usuario','Rol']];
