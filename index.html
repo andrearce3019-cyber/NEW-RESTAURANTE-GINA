@@ -105,6 +105,8 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--ac2)}
 .g.x{min-height:30px;padding:0 8px;color:#c0392b}
 .sheet.zoom{width:min(760px,100%)}.big .cl{font-size:19px;padding:12px 0}.big .ni{width:96px;font-size:18px}
 .seg button{flex:none}
+.pract{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:10px 16px;background:repeating-linear-gradient(-45deg,#f5b800,#f5b800 14px,#ffd54a 14px,#ffd54a 28px);color:#1a1300}
+.pract span{font-size:14px;flex:1;min-width:200px}.pract button{background:#1a1300;color:#fff;border:0;min-height:34px}
 </style></head><body><div id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -116,7 +118,7 @@ const SUPA_URL='https://urhinovcskzbaknufbnr.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyaGlub3Zjc2t6YmFrbnVmYm5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyOTE3MDAsImV4cCI6MjEwNjg2NzcwMH0.yr9QZmELXin-JiFHmjJS61nW5UuQoSmGxM32KaCUv7o';
 /* ====================================================================== */
 const ONLINE=/^https:\/\//.test(SUPA_URL);
-let ptab='ent',cobCli='',cobMoz='',cobSolo=false,cartP={},zoomCart=false,modo='local',htipo='',myUser='',enUso=null,sesIni=0,lastLat=0,P=null,lastP=0,pdia='',addTo=null,vista='admin',myName='Local',mtab='pedir',ktab='cola',rper='hoy',pagoSel='',NUM={};const rv=()=>user=='admin'?vista:user;
+let vp='real',ptab='ent',cobCli='',cobMoz='',cobSolo=false,cartP={},zoomCart=false,modo='local',htipo='',myUser='',enUso=null,sesIni=0,lastLat=0,P=null,lastP=0,pdia='',addTo=null,vista='admin',myName='Local',mtab='pedir',ktab='cola',rper='hoy',pagoSel='',NUM={};const rv=()=>user=='admin'?vista:user;
 let actx=null,primera=true,vNuevo=new Set(),vListo=new Set(),swReg=null,wl=null,avisosOn=!!(window.Notification&&Notification.permission=='granted');
 let sb=null,me=null,snap={},cfgSnap='',cfgVer=0,ver=0,busy=false,tm=null,ch=null;
 const K='resto_proto_v1';
@@ -183,7 +185,7 @@ function sonar(){try{actx=actx||new (window.AudioContext||window.webkitAudioCont
  try{navigator.vibrate&&navigator.vibrate([300,150,300,150,300])}catch(e){}}
 function avisar(tit,txt){sonar();
  try{if(window.Notification&&Notification.permission=='granted'&&swReg)swReg.showNotification(tit,{body:txt,tag:'r'+Date.now()+Math.random(),renotify:true,vibrate:[300,150,300]})}catch(e){}}
-function avisos(){const v=rv(),nu=S.orders.filter(o=>o.st=='nuevo'),li=S.orders.filter(o=>o.st=='listo');
+function avisos(){const v=rv(),nu=S.orders.filter(o=>o.st=='nuevo'&&enModo(o)),li=S.orders.filter(o=>o.st=='listo'&&enModo(o));
  if(!primera){
   if(v=='cocina')nu.filter(o=>!vNuevo.has(o.id)).forEach(o=>avisar('🔔 Nuevo pedido · '+mlab(o.mesa),o.items.map(i=>i.q+' '+i.n).join(', ')));
   if(v=='mozo')li.filter(o=>!vListo.has(o.id)).forEach(o=>avisar('✅ Pedido listo · '+mlab(o.mesa),o.items.map(i=>i.q+' '+i.n).join(', ')+' — listo para entregar'))}
@@ -196,7 +198,7 @@ async function pantalla(){try{if('wakeLock' in navigator&&document.visibilitySta
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible'&&me){pantalla();pull()}});
 document.addEventListener('pointerdown',()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(e){}},{passive:true});
 async function push(){if(!sb||!me)return;busy=true;
- try{const d={cats:S.cats,products:S.products,pid:S.pid,mesas:S.mesas||8},cfg=JSON.stringify(d);
+ try{const d={cats:S.cats,products:S.products,pid:S.pid,mesas:S.mesas||8,practica:!!S.practica,prac:S.prac||[]},cfg=JSON.stringify(d);
   if(user=='admin'&&cfg!==cfgSnap){const v=Date.now(),{error}=await sb.from('config').upsert({id:1,ver:v,data:d});if(error)throw error;cfgSnap=cfg;cfgVer=v}
   const cur={};S.orders.forEach(o=>cur[o.id]=JSON.stringify(o));
   const up=S.orders.filter(o=>snap[o.id]!==cur[o.id]).map(o=>({id:o.id,data:o})),del=Object.keys(snap).filter(k=>!(k in cur));
@@ -209,7 +211,7 @@ async function pull(){if(!sb||!me||busy)return;const v=ver;
   if(c.error||o.error||v!=ver||busy)return;
   const before=JSON.stringify([S.cats,S.products,S.orders]);
   if(c.data){if(c.data.ver!==cfgVer){const x=await sb.from('config').select('ver,data').eq('id',1).single();if(x.error||v!=ver)return;
-    const d=x.data.data;S.cats=d.cats;CATS=S.cats;S.products=d.products;S.pid=d.pid;S.mesas=d.mesas||8;cfgSnap=JSON.stringify(d);cfgVer=x.data.ver}}
+    const d=x.data.data;S.cats=d.cats;CATS=S.cats;S.products=d.products;S.pid=d.pid;S.mesas=d.mesas||8;S.practica=!!d.practica;S.prac=d.prac||[];cfgSnap=JSON.stringify(d);cfgVer=x.data.ver}}
   else if(user=='admin'){S.cats=[...DEF];CATS=S.cats;S.products=SEED.map((q,i)=>({id:i+1,n:q[0],c:q[1],p:q[2],a:true}));S.pid=SEED.length+1;await push()}
   S.orders=o.data.map(x=>({...x.data,num:x.num})).reverse();snap={};S.orders.forEach(x=>snap[x.id]=JSON.stringify(x));avisos();
   await chequeoExp();latido();if(JSON.stringify([S.cats,S.products,S.orders])!==before&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))draw()}catch(e){}}
@@ -221,7 +223,7 @@ function draw(){
  <button onclick="login('cocina')"><span class="ic">👨‍🍳</span><span><b>Cocina</b><br><span class="hint">Recibe y prepara pedidos</span></span></button>
  <button onclick="login('admin')"><span class="ic">📊</span><span><b>Administrador</b><br><span class="hint">Productos, precios y reportes</span></span></button></div>`;return}
  const names=NAMES;if(ONLINE&&user&&!myName){$('app').innerHTML=nameForm();return}
- $('app').innerHTML=`<div class="top"><b>Restaurante Gina · ${names[rv()]}</b>${user=='admin'?`<select aria-label="Ir a" onchange="vista=this.value;draw()">${[['admin','Administrador'],['mozo','Mozo'],['cocina','Cocina']].map(o=>`<option value="${o[0]}" ${vista==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:''}${ONLINE?`${user=='admin'?`<button onclick="cambiarClave()">Mi clave</button>`:''}${avisosOn?'':`<button onclick="activarAvisos()">🔔 Activar avisos</button>`}${user!='admin'?`<button onclick="cambiarNombre()" title="Cambiar nombre">👤 ${esc(myName)}</button>`:''}<button onclick="salir()">Salir</button>`:`<button onclick="user=null;draw()">Cambiar perfil</button>`}</div><div class="wrap">${rv()=='mozo'?mozo():rv()=='cocina'?cocina():admin()}</div>`;
+ $('app').innerHTML=`<div class="top"><b>Restaurante Gina · ${names[rv()]}</b>${user=='admin'?`<select aria-label="Ir a" onchange="vista=this.value;draw()">${[['admin','Administrador'],['mozo','Mozo'],['cocina','Cocina']].map(o=>`<option value="${o[0]}" ${vista==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:''}${ONLINE?`${user=='admin'?`<button onclick="cambiarClave()">Mi clave</button>`:''}${avisosOn?'':`<button onclick="activarAvisos()">🔔 Activar avisos</button>`}${user!='admin'?`<button onclick="cambiarNombre()" title="Cambiar nombre">👤 ${esc(myName)}</button>`:''}<button onclick="salir()">Salir</button>`:`<button onclick="user=null;draw()">Cambiar perfil</button>`}</div>${isPract()?`<div class="pract"><b>🎓 MODO PRÁCTICA</b><span>${S.practica?'Los pedidos que se hagan ahora son de prueba y no cuentan en reportes ni en caja.':'Estás practicando: tus pedidos son de prueba, no cuentan y cocina no los ve. Usa “🎓 Simular cocina” para avanzarlos.'}</span>${user=='admin'&&S.practica?'<button onclick="setPractica(false)">Desactivar</button>':''}</div>`:''}<div class="wrap">${rv()=='mozo'?mozo():rv()=='cocina'?cocina():admin()}</div>`;
 
  if(zoomCart&&rv()=='mozo'&&mtab=='pedir')renderZoom();
  document.querySelectorAll('.tabs button.on').forEach(b=>b.scrollIntoView({inline:'center',block:'nearest'}));
@@ -231,8 +233,11 @@ function login(r){user=r;draw()}
 /* ===== NUMERACIÓN DIARIA: N° 1, 2, 3... se reinicia cada día y al borrar ===== */
 const ck=o=>o.cuenta||o.id;
 const esHoy=o=>dkey(o.t0)==dkey(Date.now());
-function numerar(){NUM={};const g={};S.orders.forEach(o=>{const k=ck(o);if(g[k]==null||o.t0<g[k])g[k]=o.t0});
- const d={};Object.entries(g).sort((a,b)=>a[1]-b[1]).forEach(([k,t])=>{const x=dkey(t);d[x]=(d[x]||0)+1;NUM[k]=d[x]})}
+function numerar(){NUM={};const g={},pr={};S.orders.forEach(o=>{const k=ck(o);if(o.prueba)pr[k]=1;if(g[k]==null||o.t0<g[k])g[k]=o.t0});
+ const d={};Object.entries(g).sort((a,b)=>a[1]-b[1]).forEach(([k,t])=>{const x=dkey(t)+(pr[k]?'P':'');d[x]=(d[x]||0)+1;NUM[k]=(pr[k]?'P':'')+d[x]})}
+const fvp=o=>vp=='prueba'?!!o.prueba:!o.prueba,isPract=()=>!!S.practica||(user!='admin'&&(S.prac||[]).includes(myUser)),enModo=o=>!!o.prueba==isPract(),modoHoy=o=>esHoy(o)&&enModo(o);
+const vpSeg=()=>seg([['real','📊 Pedidos reales'],['prueba','🎓 Pedidos de práctica']],vp,'vp');
+const tagP=o=>o&&o.prueba?' <span class="chip" style="--c:#a8740a">🎓 Práctica</span>':'';
 const pnum=o=>NUM[ck(o)]||'…';
 const stTxt={anulado:'Anulado',nuevo:'En espera',prep:'Preparando',listo:'Listo',entregado:'Entregado'};
 const PAGOS={efectivo:['Efectivo','💵','#2a8a56'],yape:['Yape','📱','#7b2d8e'],plin:['Plin','📲','#12859a']};
@@ -252,7 +257,7 @@ function modal(h){cerrarModal();const m=document.createElement('div');m.classNam
 function cerrarModal(){zoomCart=false;const m=$('mdl');if(m)m.remove()}
 
 /* ===== MOZO ===== */
-function cuentasAbiertas(){const g={};S.orders.filter(o=>!o.cerrada).forEach(o=>{(g[ck(o)]=g[ck(o)]||[]).push(o)});
+function cuentasAbiertas(){const g={};S.orders.filter(o=>!o.cerrada&&enModo(o)).forEach(o=>{(g[ck(o)]=g[ck(o)]||[]).push(o)});
  return Object.entries(g).map(([k,os])=>({k:+k,os:os.sort((x,y)=>x.t0-y.t0)})).sort((x,y)=>x.os[0].t0-y.os[0].t0)}
 const cuentaDe=m=>cuentasAbiertas().find(c=>c.os[0].mesa==m&&!c.os.some(o=>o.fiado));
 function mozo(){return seg([['pedir','🛎️ Tomar pedidos'],['dia','📋 Mi día']],mtab,'mtab')+(mtab=='dia'?mozoDia():mozoPedir())}
@@ -305,9 +310,9 @@ function mesasBar(){const n=S.mesas||8;if(mesa>n)mesa=1;let libres=0,b='';
  return `<div class="mhead"><b>Mesas</b><span class="hint"><i class="dot" style="background:var(--ok)"></i>${libres} libre${libres==1?'':'s'} <i class="dot" style="background:#d9a400;margin-left:10px"></i>${n-libres} ocupada${n-libres==1?'':'s'}</span></div>
  <div class="mesas"><button class="mb llevar ${mesa===0&&!addTo?'on':''}" onclick="mesa=0;addTo=null;draw()"><b>🛍️ Para llevar</b><small>${ll?ll+' abierto(s)':'Sin mesa'}</small></button>${b}</div>`}
 function cuentaCard(c){const o0=c.os[0],tot=c.os.reduce((a,o)=>a+total(o),0);
- return `<div class="card"><div class="row"><span><b>Pedido N° ${pnum(o0)} · ${mlab(o0.mesa)}</b><div class="hint">${o0.mozo?'Atiende: '+esc(o0.mozo):''}${o0.cliente?(o0.mozo?' · ':'')+'Cliente: '+esc(o0.cliente):''}</div></span><b style="font-size:20px">${money(tot)}</b></div>
+ return `<div class="card"><div class="row"><span><b>Pedido N° ${pnum(o0)} · ${mlab(o0.mesa)}${tagP(o0)}</b><div class="hint">${o0.mozo?'Atiende: '+esc(o0.mozo):''}${o0.cliente?(o0.mozo?' · ':'')+'Cliente: '+esc(o0.cliente):''}</div></span><b style="font-size:20px">${money(tot)}</b></div>
  ${fiadoInfo(c.os)}
- ${c.os.map(o=>`<div class="row" style="border-top:1px dashed var(--bd)"><span class="hint">${hhmm(o.t0)} · ${o.items.map(i=>i.q+' '+esc(i.n)).join(', ')}</span><span style="display:flex;gap:4px;align-items:center;flex:none">${o.st=='listo'?`<button class="p" onclick="avanzar(${o.id})">Entregar</button>`:`<span class="tag">${o.st=='anulado'?'Anulado':o.dir?'Directo':stTxt[o.st]}</span>`}${o.st!='anulado'?`<button class="g" title="Anular este envío" aria-label="Anular este envío" onclick="anular([${o.id}])">✕</button>`:''}</span></div>`).join('')}
+ ${c.os.map(o=>`<div class="row" style="border-top:1px dashed var(--bd)"><span class="hint">${hhmm(o.t0)} · ${o.items.map(i=>i.q+' '+esc(i.n)).join(', ')}</span><span style="display:flex;gap:4px;align-items:center;flex:none">${o.prueba&&!S.practica&&(o.st=='nuevo'||o.st=='prep')?`<button class="g" onclick="simCocina(${o.id})">🎓 Simular cocina</button>`:''}${o.st=='listo'?`<button class="p" onclick="avanzar(${o.id})">Entregar</button>`:`<span class="tag">${o.st=='anulado'?'Anulado':o.dir?'Directo':stTxt[o.st]}</span>`}${o.st!='anulado'?`<button class="g" title="Anular este envío" aria-label="Anular este envío" onclick="anular([${o.id}])">✕</button>`:''}</span></div>`).join('')}
  <div class="row" style="flex-wrap:wrap;justify-content:flex-end;margin-top:6px"><button onclick="verCuenta(${c.k})">Ver detalle</button><button onclick="mesa=${o0.mesa||0};modo='${o0.mesa==-1?'fuera':'local'}';addTo=${c.k};mtab='pedir';draw();document.getElementById('cart').scrollIntoView({behavior:'smooth'})">Agregar</button><button style="color:#c0392b" onclick="anular(${JSON.stringify(c.os.map(o=>o.id))},true)">Anular pedido</button>${esFiado(c)?'':`<button style="border-color:#d9a400" onclick="dejarPend(${c.k})">📝 Cobrar después</button>`}<button class="p" onclick="cobrar(${c.k})">💰 ${o0.mesa>0?'Cobrar y liberar mesa':'Cobrar y cerrar pedido'}</button></div></div>`}
 function verCuenta(k){const os=S.orders.filter(o=>ck(o)==k).sort((a,b)=>a.t0-b.t0);if(!os.length)return;
  const o0=os[0],tot=os.reduce((a,o)=>a+total(o),0),pg=os.find(o=>o.pago);
@@ -355,7 +360,7 @@ function vuelto(t){const v=parseFloat($('pc').value),e=$('vu');if(isNaN(v)){e.te
 function confCobro(k){if(!pagoSel)return;const now=Date.now(),pc=pagoSel=='efectivo'?parseFloat(($('pc')||{}).value):NaN;
  S.orders.filter(o=>ck(o)==k&&!o.cerrada).forEach(o=>{if(o.st=='listo'){o.st='entregado';o.t3=now}o.cerrada=true;o.pago=pagoSel;o.tp=now;o.cobrador=myName;if(!isNaN(pc))o.pagaCon=pc});
  cerrarModal();save();draw()}
-function mozoDia(){const cs=agrupar(S.orders.filter(esHoy)).filter(c=>c.mozo==myName),r=resumen(cs),dig=r.m.yape+r.m.plin;
+function mozoDia(){const cs=agrupar(S.orders.filter(modoHoy)).filter(c=>c.mozo==myName),r=resumen(cs),dig=r.m.yape+r.m.plin;
  return `<div class="sec"><h3>Mi día · ${fec(Date.now())}</h3><span class="chip" style="--c:var(--ac)">🛎️ ${esc(myName)}</span></div>
  <div class="kpi">${kpi('🧾',r.n,'Pedidos atendidos','#6f52c0')}${kpisPago(r)}${kpi('🕒',money(r.abierto),'Por cobrar · '+(r.nab||0)+' pedido(s)','#a8740a')}${kpi('❌',r.anulN,'Pedidos anulados · '+money(r.anulM),'#c0392b')}</div>
  <div class="card cuadre"><b style="font-size:18px">Cuadre de caja</b>
@@ -370,7 +375,7 @@ function add(id,d=1){cart[id]=(cart[id]||0)+d;if(cart[id]<=0){delete cart[id];de
 function enviar(dir,fiado){const items=cartLines().map(l=>({n:l.p.n,p:l.pu,q:l.q,b:l.p.p}));if(!items.length)return;
  const ab=destino(),now=Date.now();let nom=ab?(ab.os[0].cliente||''):cli.trim();
  if(fiado&&!nom){nom=(prompt('¿A nombre de quién queda pendiente de cobro? (obligatorio)')||'').trim();if(!nom)return}
- const o={id:now,mesa,cliente:nom,items,nota,t0:now,cuenta:ab?ab.k:now,mozo:myName,usr:myUser};
+ const o={id:now,mesa,cliente:nom,items,nota,t0:now,cuenta:ab?ab.k:now,mozo:myName,usr:myUser};if(ab?ab.os[0].prueba:isPract())o.prueba=true;
  if(dir){o.st='entregado';o.dir=true;o.t3=now}else o.st='nuevo';
  S.orders.push(o);
  if(fiado)S.orders.filter(x=>ck(x)==o.cuenta&&!x.cerrada).forEach(x=>{x.fiado=true;x.fiadoPor=myName;x.tf=now;x.cliente=nom});
@@ -384,7 +389,7 @@ function fiadoInfo(os){const f=os.find(o=>o.fiado);return f?`<div class="warn" s
 function varTag(it){if(it.b==null)return '<span class="hint">—</span>';const d=Math.round((it.p-it.b)*100)/100;if(!d)return '<span class="hint">Igual</span>';
  const pc=it.b?Math.round(d/it.b*100):0;return `<span class="chip" style="--c:${d>0?'#2a8a56':'#c0392b'}">${d>0?'▲ +':'▼ −'}${money(Math.abs(d))} (${d>0?'+':''}${pc}%)</span>`}
 function listaPedidos(){const cs=cuentasAbiertas(),ent=cs.filter(porEntregar),cob=cs.filter(c=>!porEntregar(c));
- const pag=agrupar(S.orders.filter(esHoy)).filter(c=>c.cobrado);
+ const pag=agrupar(S.orders.filter(modoHoy)).filter(c=>c.cobrado);
  const tabs=[['ent','🍳 Por entregar',ent.length],['cob','💰 Por cobrar',cob.length],['pag','✅ Cobrados hoy',pag.length]];
  const body=ptab=='pag'?(pag.slice(0,40).map(c=>`<div class="card"><div class="row"><span><b>Pedido N° ${pnum(c.o0)} · ${mlab(c.o0.mesa)}</b><div class="hint">${hhmm(c.t0)}${c.o0.cliente?' · '+esc(c.o0.cliente):''}${c.mozo?' · '+esc(c.mozo):''}</div></span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${pagoTag(c.pago)}<b>${money(c.tot)}</b><button onclick="verCuenta(${c.k})">Ver</button></span></div></div>`).join('')||'<p class="hint">Aún no hay pedidos cobrados hoy.</p>')
   :((ptab=='cob'?cob:ent).map(cuentaCard).join('')||`<p class="hint">${ptab=='cob'?'No hay pedidos por cobrar.':'No hay pedidos por entregar.'}</p>`);
@@ -397,15 +402,15 @@ function avanzar(id){const o=S.orders.find(x=>x.id==id),t=Date.now();if(!o)retur
 /* ===== COCINA ===== */
 function cocina(){return seg([['cola','🔥 Pedidos en cola'],['dia','📋 Historial de hoy']],ktab,'ktab')+(ktab=='dia'?cocinaDia():cocinaCola())}
 function cocinaCola(){
- const col=(st,t,btn)=>{const os=S.orders.filter(o=>o.st==st).sort((a,b)=>a.t0-b.t0);
+ const col=(st,t,btn)=>{const os=S.orders.filter(o=>o.st==st&&enModo(o)).sort((a,b)=>a.t0-b.t0);
  return `<div class="kc ${st}"><h3>${t} (${os.length})</h3>${os.map(o=>{const ms=Date.now()-(st=='nuevo'?o.t0:st=='prep'?o.t1:o.t2);
- return `<div class="card"><div class="row"><b>N° ${pnum(o)} · ${mlab(o.mesa)}${ck(o)!=o.id?' <span class="tag">Adicional</span>':''}</b><span class="${ms>600000&&st!='listo'?'late':'hint'}">${mm(ms)}</span></div>
+ return `<div class="card"><div class="row"><b>N° ${pnum(o)} · ${mlab(o.mesa)}${tagP(o)}${ck(o)!=o.id?' <span class="tag">Adicional</span>':''}</b><span class="${ms>600000&&st!='listo'?'late':'hint'}">${mm(ms)}</span></div>
  <div class="hint" style="margin-bottom:6px">🛎️ ${esc(o.mozo||'—')} · llegó ${hhmm(o.t0)}${o.cliente?' · '+esc(o.cliente):''}</div>
  ${o.items.map(i=>`<div style="font-size:17px"><b>${i.q} ×</b> ${esc(i.n)}</div>`).join('')}${o.nota?`<div class="warn" style="margin-top:6px">📝 ${esc(o.nota)}</div>`:''}
  ${btn?`<button class="p" style="margin-top:10px;width:100%" onclick="avanzar(${o.id})">${btn}</button>`:''}</div>`}).join('')||'<p class="hint">Nada por aquí.</p>'}</div>`};
  return `<div class="col3">${col('nuevo','Nuevos','Empezar a preparar')}${col('prep','Preparando','Marcar listo')}${col('listo','Listos para entregar','')}</div><p class="hint">El cronómetro se pone en ámbar pasados 10 minutos.</p>`;
 }
-function cocinaDia(){const os=S.orders.filter(o=>!o.dir&&esHoy(o)).sort((a,b)=>b.t0-a.t0),av=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
+function cocinaDia(){const os=S.orders.filter(o=>!o.dir&&modoHoy(o)).sort((a,b)=>b.t0-a.t0),av=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
  const prep=os.filter(o=>o.t1&&o.t2),esp=os.filter(o=>o.t1);
  return `<div class="sec"><h3>Cocina · ${fec(Date.now())}</h3></div>
  <div class="kpi">${kpi('📥',os.length,'Envíos recibidos','#2b7fd0')}${kpi('✅',prep.length,'Preparados','#2a8a56')}${kpi('⏳',mm(av(esp.map(o=>o.t1-o.t0))),'Espera promedio','#a8740a')}${kpi('⏱️',mm(av(prep.map(o=>o.t2-o.t1))),'Preparación promedio','#6f52c0')}${kpi('❌',os.filter(o=>o.st=='anulado').length,'Anulados','#c0392b')}</div>
@@ -417,6 +422,7 @@ setInterval(()=>{if(rv()=='cocina'&&ktab=='cola'&&!document.getElementById('mdl'
 function admin(){return seg([['prod','🍽️ Productos y precios'],['rep','📊 Reportes'],['hist','🗂️ Historial'],['cob','🕒 Por cobrar'],['per','👥 Personal']],atab,'atab')+(atab=='prod'?prodTab():atab=='rep'?repTab():atab=='per'?perTab():atab=='cob'?cobTab():histTab())}
 function prodTab(){
  return `<div class="card"><b>Agregar producto</b><div class="row" style="flex-wrap:wrap"><input id="nn" placeholder="Nombre" style="flex:2;min-width:150px"><select id="nc" style="flex:1;min-width:110px">${CATS.map(c=>`<option>${esc(c)}</option>`).join('')}</select><input id="np" type="number" step="0.5" min="0" placeholder="Precio" style="flex:1;min-width:80px"><button class="p" onclick="addProd()">Agregar</button></div></div>
+ <div class="card" style="border-left:5px solid #d9a400"><div class="row" style="flex-wrap:wrap"><span><b>🎓 Modo práctica (capacitación)</b><div class="hint">Para practicar <b>todos a la vez</b> (antes de abrir). Para capacitar a <b>un solo mozo nuevo</b> mientras los demás trabajan normal, ve a <b>👥 Personal</b> → <b>🎓 Poner en práctica</b>.${(S.prac||[]).length?'<br>En práctica ahora: <b>'+S.prac.map(esc).join(', ')+'</b>':''}</div></span><span style="display:flex;gap:8px;flex-wrap:wrap">${S.practica?'<button onclick="setPractica(false)">Desactivar</button>':'<button class="p" onclick="setPractica(true)">Activar práctica</button>'}${S.orders.some(o=>o.prueba)?'<button class="g" style="color:#c0392b" onclick="borrarPruebas()">Borrar pedidos de práctica</button>':''}</span></div></div>
  <div class="card"><div class="row" style="flex-wrap:wrap"><span><b>Mesas del local</b><div class="hint">Cuántas mesas aparecen en la pantalla del mozo.</div></span><input type="number" min="1" max="60" value="${S.mesas||8}" style="width:100px" onchange="setMesas(this.value)"></div></div>
  ${catCard()}
  <div class="card tw"><table class="pt"><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Precio (S/)</th><th>Activo</th></tr>
@@ -453,7 +459,7 @@ function perTab(){if(!ONLINE)return '<p class="hint">Disponible en la versión e
  const d=pdia||dkey(now),tur=P.tur.filter(t=>dkey(t.inicio)==d);
  return `<div class="kpi">${kpi('🟢',act,'Usuarios en uso ahora','#2a8a56')}${kpi('⚪',us.length-act,'Usuarios libres','#7a8a85')}${kpi('🕘',tur.length,'Turnos iniciados el '+fec(new Date(d+'T12:00').getTime()),'#6f52c0')}</div>
  <div class="card tw"><b>Usuarios</b><table style="margin-top:6px"><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Lo usa</th><th>Desde</th><th>Acción</th></tr>
- ${us.map(u=>{const x=ses[u.usuario],on=x&&x.visto>now-120000;return `<tr><td><b>${esc(u.usuario)}</b></td><td>${NAMES[u.rol]||u.rol}</td><td>${on?'<span class="chip" style="--c:#2a8a56">🟢 En uso</span>':'<span class="chip" style="--c:#7a8a85">⚪ Libre</span>'}</td><td>${on?'<b>'+esc(x.nombre||'—')+'</b>':'—'}</td><td>${on?hhmm(x.inicio||x.visto):'—'}</td><td>${on&&u.rol!='admin'?`<button class="g" style="color:#c0392b;min-height:34px" onclick="expulsar('${esc(u.usuario)}','${esc(x.nombre||'')}')">🔓 Liberar</button>`:''}</td></tr>`}).join('')}</table>
+ ${us.map(u=>{const x=ses[u.usuario],on=x&&x.visto>now-120000;const pr=(S.prac||[]).includes(u.usuario);return `<tr><td><b>${esc(u.usuario)}</b></td><td>${NAMES[u.rol]||u.rol}${pr?' <span class="chip" style="--c:#a8740a">🎓 Práctica</span>':''}</td><td>${on?'<span class="chip" style="--c:#2a8a56">🟢 En uso</span>':'<span class="chip" style="--c:#7a8a85">⚪ Libre</span>'}</td><td>${on?'<b>'+esc(x.nombre||'—')+'</b>':'—'}</td><td>${on?hhmm(x.inicio||x.visto):'—'}</td><td style="white-space:nowrap">${u.rol!='admin'?`<button class="g" style="min-height:34px;color:#a8740a" onclick="togPrac('${esc(u.usuario)}')">${pr?'Quitar práctica':'🎓 Poner en práctica'}</button>`:''}${on&&u.rol!='admin'?`<button class="g" style="color:#c0392b;min-height:34px" onclick="expulsar('${esc(u.usuario)}','${esc(x.nombre||'')}')">🔓 Liberar</button>`:''}</td></tr>`}).join('')}</table>
  <p class="hint" style="margin:8px 0 0">"En uso" = tiene la app abierta ahora. El botón 🔓 Liberar aparece en los mozos y cocineros que estén en uso. Al salir o ser liberado, su turno pasa al registro de abajo.</p></div>
  <div class="card tw"><div class="row" style="flex-wrap:wrap"><b>Registro de turnos</b><span style="display:flex;gap:8px;flex-wrap:wrap"><input type="date" value="${d}" style="width:auto" onchange="pdia=this.value;draw()"><button onclick="expTurnos()">Exportar a Excel</button><button class="g" style="color:#c0392b" onclick="borrarTurnos()">Borrar turnos de este día</button></span></div>
  <table style="margin-top:6px"><tr><th>Fecha</th><th>Ingreso</th><th>Salida</th><th>Tiempo</th><th>Nombre</th><th>Usuario</th><th>Rol</th></tr>${tur.map(t=>{const v=turnoInfo(t,ses,now);return `<tr><td>${fec(t.inicio)}</td><td>${hhmm(t.inicio)}</td><td>${v.vivo?'<span class="chip" style="--c:#2a8a56">🟢 En curso</span>':v.fin?hhmm(v.fin):'—'}</td><td>${v.dur}</td><td><b>${esc(t.nombre)}</b></td><td>${esc(t.usuario)}</td><td>${NAMES[t.rol]||t.rol}</td></tr>`}).join('')||'<tr><td colspan="7" class="hint">Nadie inició turno ese día.</td></tr>'}</table></div>`}
@@ -473,12 +479,12 @@ async function expTurnos(){if(!P)return;const now=Date.now(),ses={};P.ses.forEac
  if(window.XLSX){const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[12,12,12,12,20,16,14].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Turnos');data=XLSX.write(wb,{type:'array',bookType:'xlsx'});name=fn+'.xlsx'}
  else{data='\ufeff'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');name=fn+'.csv'}
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data]));a.download=name;document.body.appendChild(a);a.click();a.remove()}
-function cobTab(){const todas=agrupar(S.orders.filter(o=>!o.cerrada)).filter(c=>!c.anulada);
+function cobTab(){const todas=agrupar(S.orders.filter(o=>!o.cerrada&&fvp(o))).filter(c=>!c.anulada);
  const clis=[...new Set(todas.map(c=>c.o0.cliente||'').filter(Boolean))].sort(),mozs=[...new Set(todas.map(c=>c.mozo||'').filter(Boolean))].sort();
  let cs=todas;if(cobSolo)cs=cs.filter(esFiado);if(cobCli)cs=cs.filter(c=>(c.o0.cliente||'')==cobCli);if(cobMoz)cs=cs.filter(c=>c.mozo==cobMoz);
  const tot=cs.reduce((a,c)=>a+c.tot,0),fi=todas.filter(esFiado),tf=fi.reduce((a,c)=>a+c.tot,0);
  const sel=(v,arr,set,todos)=>`<select onchange="${set}=this.value;draw()"><option value="">${todos}</option>${arr.map(x=>`<option ${v==x?'selected':''}>${esc(x)}</option>`).join('')}</select>`;
- return `<div class="kpi">${kpi('🕒',todas.length,'Pedidos por cobrar','#a8740a')}${kpi('💰',money(todas.reduce((a,c)=>a+c.tot,0)),'Monto total por cobrar','#a8740a')}${kpi('📝',fi.length,'Dejados pendientes (fiado)','#b94a28')}${kpi('💸',money(tf),'Monto pendiente (fiado)','#b94a28')}</div>
+ return vpSeg()+`<div class="kpi">${kpi('🕒',todas.length,'Pedidos por cobrar','#a8740a')}${kpi('💰',money(todas.reduce((a,c)=>a+c.tot,0)),'Monto total por cobrar','#a8740a')}${kpi('📝',fi.length,'Dejados pendientes (fiado)','#b94a28')}${kpi('💸',money(tf),'Monto pendiente (fiado)','#b94a28')}</div>
  <div class="card"><div class="row" style="flex-wrap:wrap;align-items:flex-end">
  <label style="flex:2;min-width:160px"><span class="hint">Cliente</span>${sel(cobCli,clis,'cobCli','Todos los clientes')}</label>
  <label style="flex:2;min-width:160px"><span class="hint">Mozo</span>${sel(cobMoz,mozs,'cobMoz','Todos los mozos')}</label>
@@ -487,15 +493,28 @@ function cobTab(){const todas=agrupar(S.orders.filter(o=>!o.cerrada)).filter(c=>
  <p class="hint" style="margin:8px 0 0">${cs.length} pedido(s) · ${money(tot)}</p></div>
  <div class="card tw"><table><tr><th>N°</th><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Mesa</th><th>Cliente</th><th>Atendió</th><th>Estado</th><th>Dejado pendiente por</th><th>Monto</th><th></th></tr>
  ${cs.map(c=>{const f=c.os.find(o=>o.fiado);return `<tr><td><b>${pnum(c.o0)}</b></td><td>${fec(c.t0)}</td><td>${hhmm(c.t0)}</td><td>${tipoTag(c.o0)}</td><td>${mcorto(c.o0.mesa)}</td><td>${esc(c.o0.cliente||'—')}</td><td>${esc(c.mozo||'—')}</td><td>${f?'<span class="chip" style="--c:#b94a28">📝 Pendiente</span>':porEntregar(c)?'<span class="chip" style="--c:#2b7fd0">🍳 Por entregar</span>':'<span class="chip" style="--c:#a8740a">💰 Por cobrar</span>'}</td><td>${f?esc(f.fiadoPor||'—')+' · '+fec(f.tf)+' '+hhmm(f.tf):'—'}</td><td><b>${money(c.tot)}</b></td><td style="display:flex;gap:6px"><button onclick="verCuenta(${c.k})">Ver</button><button class="p" onclick="cobrar(${c.k})">Cobrar</button></td></tr>`}).join('')||'<tr><td colspan="11" class="hint">No hay pedidos por cobrar con esos filtros.</td></tr>'}</table></div>`}
+function simCocina(id){const o=S.orders.find(x=>x.id==id),t=Date.now();if(!o)return;o.t1=o.t1||t;o.t2=t;o.st='listo';o.cocinero='(práctica)';save();draw()}
+function togPrac(u){S.prac=S.prac||[];const on=S.prac.includes(u);
+ if(!on){if(!confirm('¿Poner a '+u+' en MODO PRÁCTICA?\n\nSus pedidos serán de prueba: no cuentan en reportes ni caja, no ocupan mesas reales y cocina no los ve. Los demás siguen trabajando normal.'))return;S.prac.push(u)}
+ else{S.prac=S.prac.filter(x=>x!=u);const n=new Set(S.orders.filter(o=>o.prueba&&o.usr==u).map(ck)).size;
+  if(n&&confirm(u+' ya no está en práctica.\n\n¿Borrar sus '+n+' pedido(s) de práctica?'))S.orders=S.orders.filter(o=>!(o.prueba&&o.usr==u))}
+ save();lastP=0;draw()}
+function setPractica(on){
+ if(on){if(!confirm('¿Activar el MODO PRÁCTICA?\n\nTodos los pedidos nuevos (de todos los mozos y la cocina) serán de prueba y no contarán en tus reportes. Úsalo solo para capacitar.'))return;S.practica=true;save();draw();return}
+ S.practica=false;const n=new Set(S.orders.filter(o=>o.prueba).map(ck)).size;
+ if(n&&confirm('Modo práctica desactivado.\n\n¿Quieres borrar también los '+n+' pedido(s) de práctica? (Recomendado, así no ocupan mesas ni aparecen pendientes).'))S.orders=S.orders.filter(o=>!o.prueba);
+ save();draw()}
+function borrarPruebas(){const n=new Set(S.orders.filter(o=>o.prueba).map(ck)).size;if(!n)return alert('No hay pedidos de práctica.');
+ if(!confirm('Se borrarán '+n+' pedido(s) de práctica. Los pedidos reales no se tocan. ¿Continuar?'))return;S.orders=S.orders.filter(o=>!o.prueba);save();draw()}
 function enPeriodo(t){const now=new Date(),d=dkey(t),h=dkey(now);
  if(rper=='hoy')return d==h;if(rper=='ayer')return d==dkey(now.getTime()-864e5);
  if(rper=='7d')return t>=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6).getTime();if(rper=='mes')return d.slice(0,7)==h.slice(0,7);return true}
 function repTab(){
- const cs=agrupar(S.orders).filter(c=>enPeriodo(c.t0)),r=resumen(cs),tk=r.nc?r.cob/r.nc:0,base=r.cob||1;
+ const cs=agrupar(S.orders.filter(fvp)).filter(c=>enPeriodo(c.t0)),r=resumen(cs),tk=r.nc?r.cob/r.nc:0,base=r.cob||1;
  const by={};cs.forEach(c=>c.os.filter(o=>o.st!='anulado').forEach(o=>o.items.forEach(i=>{by[i.n]=by[i.n]||{q:0,m:0};by[i.n].q+=i.q;by[i.n].m+=i.q*i.p})));
  const top=Object.entries(by).sort((a,b)=>b[1].q-a[1].q).slice(0,8),mx=top.length?top[0][1].q:1;
  const pm={};cs.filter(c=>!c.anulada).forEach(c=>{const x=pm[c.mozo||'—']=pm[c.mozo||'—']||{n:0,cob:0,m:{efectivo:0,yape:0,plin:0}};x.n++;if(c.cobrado){x.cob+=c.tot;x.m[c.pago]=(x.m[c.pago]||0)+c.tot}});
- return seg([['hoy','Hoy'],['ayer','Ayer'],['7d','Últimos 7 días'],['mes','Este mes'],['todo','Todo']],rper,'rper')+`
+ return vpSeg()+seg([['hoy','Hoy'],['ayer','Ayer'],['7d','Últimos 7 días'],['mes','Este mes'],['todo','Todo']],rper,'rper')+`
  <div class="kpi">${kpisPago(r)}${kpi('🏠',money(cs.filter(c=>c.cobrado&&c.o0.mesa!=-1).reduce((a,c)=>a+c.tot,0)),'Ventas local','#12859a')}${kpi('🛵',money(cs.filter(c=>c.cobrado&&c.o0.mesa==-1).reduce((a,c)=>a+c.tot,0)),'Ventas por fuera','#6f52c0')}${kpi('🧾',r.n,'Pedidos','#6f52c0')}${kpi('🎯',money(tk),'Ticket promedio','#12859a')}${kpi('🕒',money(r.abierto),'Por cobrar · '+(r.nab||0)+' pedido(s)','#a8740a')+kpi('↕️',(()=>{let v=0;cs.forEach(c=>c.os.filter(o=>o.st!='anulado').forEach(o=>o.items.forEach(i=>{if(i.b!=null)v+=(i.p-i.b)*i.q})));return (v<0?'− ':v>0?'+ ':'')+money(Math.abs(v))})(),'Variación por cambio de precio','#b94a28')}${kpi('❌',r.anulN,'Pedidos anulados · '+money(r.anulM),'#c0392b')}</div>
  <div class="card"><b>Métodos de pago</b>${r.cob?`<div class="stack">${Object.entries(PAGOS).map(([k,v])=>r.m[k]?`<span style="width:${r.m[k]/base*100}%;background:${v[2]}"></span>`:'').join('')}</div>
  <div class="leg">${Object.entries(PAGOS).map(([k,v])=>`<span><i style="background:${v[2]}"></i>${v[0]} <b>${Math.round(r.m[k]/base*100)}%</b></span>`).join('')}</div>`:'<p class="hint">Aún no hay cobros en este periodo.</p>'}</div>
@@ -504,13 +523,13 @@ function repTab(){
  <div class="card"><b>Más vendidos</b>${top.map(t=>`<div style="margin-top:10px"><div class="row" style="padding:0 0 4px"><span>${esc(t[0])}</span><span class="hint"><b style="color:var(--tx)">${t[1].q}</b> · ${money(t[1].m)}</span></div><div class="bar" style="width:${t[1].q/mx*100}%"></div></div>`).join('')||'<p class="hint">Aún no hay ventas en este periodo.</p>'}</div></div>`;
 }
 function histList(){
- let os=[...S.orders].sort((a,b)=>ck(b)-ck(a)||a.t0-b.t0);
+ let os=S.orders.filter(fvp).sort((a,b)=>ck(b)-ck(a)||a.t0-b.t0);
  if(htipo)os=os.filter(o=>(o.mesa==-1)==(htipo=='fuera'));if(hd1)os=os.filter(o=>dkey(o.t0)>=hd1);if(hd2)os=os.filter(o=>dkey(o.t0)<=hd2);
  const q=hq.trim().toLowerCase();if(q)os=os.filter(o=>(o.cliente||'').toLowerCase().includes(q)||(o.mozo||'').toLowerCase().includes(q));
  return os}
 function histTab(){
  const os=histList(),tot=os.reduce((a,o)=>a+total(o),0);
- return `<div class="card"><div class="row" style="flex-wrap:wrap;align-items:flex-end">
+ return vpSeg()+`<div class="card"><div class="row" style="flex-wrap:wrap;align-items:flex-end">
  <label style="flex:1;min-width:130px"><span class="hint">Desde</span><input type="date" value="${hd1}" onchange="hd1=this.value;draw()"></label>
  <label style="flex:1;min-width:130px"><span class="hint">Hasta</span><input type="date" value="${hd2}" onchange="hd2=this.value;draw()"></label>
  <label style="flex:2;min-width:160px"><span class="hint">Buscar cliente o mozo</span><input value="${esc(hq)}" placeholder="Nombre y Enter" onchange="hq=this.value;draw()"></label>
