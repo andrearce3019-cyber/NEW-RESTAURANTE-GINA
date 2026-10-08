@@ -79,7 +79,7 @@ td,th{padding:6px 4px;text-align:left;border-bottom:1px solid var(--bd)}th{color
 .ki{position:absolute;top:12px;right:12px;font-size:19px;width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:color-mix(in srgb,var(--c) 15%,transparent)}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;padding:3px 10px;border-radius:99px;color:var(--c);background:color-mix(in srgb,var(--c) 15%,transparent);white-space:nowrap}
 .big{font-size:42px;font-weight:800;margin:4px 0 8px}
-.pagos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pagos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .pg{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 8px;font-size:28px;border-radius:14px;border-width:2px}
 .pg b{font-size:15px}.pg.on{border-color:var(--ac);background:var(--ac2)}
 .warn{background:color-mix(in srgb,#f5b800 16%,transparent);border:1px solid color-mix(in srgb,#f5b800 45%,transparent);padding:8px 10px;border-radius:10px;font-size:14px;margin:8px 0}
@@ -195,15 +195,15 @@ function numerar(){NUM={};const g={};S.orders.forEach(o=>{const k=ck(o);if(g[k]=
  const d={};Object.entries(g).sort((a,b)=>a[1]-b[1]).forEach(([k,t])=>{const x=dkey(t);d[x]=(d[x]||0)+1;NUM[k]=d[x]})}
 const pnum=o=>NUM[ck(o)]||'…';
 const stTxt={anulado:'Anulado',nuevo:'En espera',prep:'Preparando',listo:'Listo',entregado:'Entregado'};
-const PAGOS={efectivo:['Efectivo','💵','#2a8a56'],yape:['Yape','📱','#7b2d8e'],plin:['Plin','📲','#12859a'],tarjeta:['Tarjeta','💳','#2b7fd0']};
+const PAGOS={efectivo:['Efectivo','💵','#2a8a56'],yape:['Yape','📱','#7b2d8e'],plin:['Plin','📲','#12859a']};
 const pagoTag=m=>m&&PAGOS[m]?`<span class="chip" style="--c:${PAGOS[m][2]}">${PAGOS[m][1]} ${PAGOS[m][0]}</span>`:'<span class="hint">—</span>';
 const seg=(arr,cur,v)=>`<div class="seg">${arr.map(t=>`<button class="${cur==t[0]?'on':''}" onclick="${v}='${t[0]}';draw()">${t[1]}</button>`).join('')}</div>`;
 const kpi=(ic,val,lab,col)=>`<div class="card k" style="--c:${col||'var(--ac)'}"><span class="ki">${ic}</span><b>${val}</b><span class="hint">${lab}</span></div>`;
 function agrupar(list){const g={};list.forEach(o=>(g[ck(o)]=g[ck(o)]||[]).push(o));
  return Object.entries(g).map(([k,a])=>{a.sort((x,y)=>x.t0-y.t0);const o0=a[0],p=a.find(o=>o.pago);
   return {k:+k,os:a,o0,t0:o0.t0,mozo:o0.mozo||'',tot:a.reduce((s,o)=>s+total(o),0),pago:p?p.pago:'',cobrado:!!p,abierta:a.some(o=>!o.cerrada),anulada:a.every(o=>o.st=='anulado')}}).sort((x,y)=>y.t0-x.t0)}
-function resumen(cs){const r={n:0,cob:0,nc:0,abierto:0,anul:0,anulM:0,m:{efectivo:0,yape:0,plin:0,tarjeta:0}};
- cs.forEach(c=>{r.anulM+=c.os.filter(o=>o.st=='anulado').reduce((s,o)=>s+o.items.reduce((a,i)=>a+i.p*i.q,0),0);
+function resumen(cs){const r={n:0,cob:0,nc:0,abierto:0,anul:0,anulN:0,anulM:0,m:{efectivo:0,yape:0,plin:0}};
+ cs.forEach(c=>{if(c.os.some(o=>o.st=='anulado'))r.anulN++;r.anulM+=c.os.filter(o=>o.st=='anulado').reduce((s,o)=>s+o.items.reduce((a,i)=>a+i.p*i.q,0),0);
   if(c.anulada){r.anul++;return}r.n++;
   if(c.cobrado){r.cob+=c.tot;r.nc++;if(r.m[c.pago]!=null)r.m[c.pago]+=c.tot}else if(c.abierta)r.abierto+=c.tot});return r}
 const kpisPago=r=>kpi('💰',money(r.cob),'Total cobrado')+Object.entries(PAGOS).map(([k,v])=>kpi(v[1],money(r.m[k]),v[0],v[2])).join('');
@@ -288,11 +288,10 @@ function confCobro(k){if(!pagoSel)return;const now=Date.now(),pc=pagoSel=='efect
  cerrarModal();save();draw()}
 function mozoDia(){const cs=agrupar(S.orders.filter(esHoy)).filter(c=>c.mozo==myName),r=resumen(cs),dig=r.m.yape+r.m.plin;
  return `<div class="sec"><h3>Mi día · ${fec(Date.now())}</h3><span class="chip" style="--c:var(--ac)">🛎️ ${esc(myName)}</span></div>
- <div class="kpi">${kpi('🧾',r.n,'Pedidos atendidos','#6f52c0')}${kpisPago(r)}${kpi('🕒',money(r.abierto),'Por cobrar','#a8740a')}${kpi('❌',r.anul,'Pedidos anulados','#c0392b')}</div>
+ <div class="kpi">${kpi('🧾',r.n,'Pedidos atendidos','#6f52c0')}${kpisPago(r)}${kpi('🕒',money(r.abierto),'Por cobrar','#a8740a')}${kpi('❌',r.anulN,'Pedidos anulados · '+money(r.anulM),'#c0392b')}</div>
  <div class="card cuadre"><b style="font-size:18px">Cuadre de caja</b>
  <div class="row"><span>💵 Efectivo a entregar</span><b>${money(r.m.efectivo)}</b></div>
  <div class="row"><span>📱📲 Yape + Plin</span><b>${money(dig)}</b></div>
- <div class="row"><span>💳 Tarjeta</span><b>${money(r.m.tarjeta)}</b></div>
  <div class="row tot"><b>Total cobrado</b><b>${money(r.cob)}</b></div>
  ${r.abierto?`<p class="warn">Tienes ${money(r.abierto)} en mesas abiertas. Cóbralas antes de cerrar tu turno.</p>`:''}</div>
  <div class="card tw"><b>Mis pedidos de hoy</b><table style="margin-top:6px"><tr><th>N°</th><th>Hora</th><th>Mesa</th><th>Cliente</th><th>Total</th><th>Pago</th><th>Estado</th></tr>
@@ -361,13 +360,13 @@ function repTab(){
  const cs=agrupar(S.orders).filter(c=>enPeriodo(c.t0)),r=resumen(cs),tk=r.nc?r.cob/r.nc:0,base=r.cob||1;
  const by={};cs.forEach(c=>c.os.filter(o=>o.st!='anulado').forEach(o=>o.items.forEach(i=>{by[i.n]=by[i.n]||{q:0,m:0};by[i.n].q+=i.q;by[i.n].m+=i.q*i.p})));
  const top=Object.entries(by).sort((a,b)=>b[1].q-a[1].q).slice(0,8),mx=top.length?top[0][1].q:1;
- const pm={};cs.filter(c=>!c.anulada).forEach(c=>{const x=pm[c.mozo||'—']=pm[c.mozo||'—']||{n:0,cob:0,m:{efectivo:0,yape:0,plin:0,tarjeta:0}};x.n++;if(c.cobrado){x.cob+=c.tot;x.m[c.pago]=(x.m[c.pago]||0)+c.tot}});
+ const pm={};cs.filter(c=>!c.anulada).forEach(c=>{const x=pm[c.mozo||'—']=pm[c.mozo||'—']||{n:0,cob:0,m:{efectivo:0,yape:0,plin:0}};x.n++;if(c.cobrado){x.cob+=c.tot;x.m[c.pago]=(x.m[c.pago]||0)+c.tot}});
  return seg([['hoy','Hoy'],['ayer','Ayer'],['7d','Últimos 7 días'],['mes','Este mes'],['todo','Todo']],rper,'rper')+`
- <div class="kpi">${kpisPago(r)}${kpi('🧾',r.n,'Pedidos','#6f52c0')}${kpi('🎯',money(tk),'Ticket promedio','#12859a')}${kpi('🕒',money(r.abierto),'Por cobrar (mesas abiertas)','#a8740a')}${kpi('❌',money(r.anulM),'Anulado · '+r.anul+' pedido(s)','#c0392b')}</div>
+ <div class="kpi">${kpisPago(r)}${kpi('🧾',r.n,'Pedidos','#6f52c0')}${kpi('🎯',money(tk),'Ticket promedio','#12859a')}${kpi('🕒',money(r.abierto),'Por cobrar (mesas abiertas)','#a8740a')}${kpi('❌',r.anulN,'Pedidos anulados · '+money(r.anulM),'#c0392b')}</div>
  <div class="card"><b>Métodos de pago</b>${r.cob?`<div class="stack">${Object.entries(PAGOS).map(([k,v])=>r.m[k]?`<span style="width:${r.m[k]/base*100}%;background:${v[2]}"></span>`:'').join('')}</div>
  <div class="leg">${Object.entries(PAGOS).map(([k,v])=>`<span><i style="background:${v[2]}"></i>${v[0]} <b>${Math.round(r.m[k]/base*100)}%</b></span>`).join('')}</div>`:'<p class="hint">Aún no hay cobros en este periodo.</p>'}</div>
- <div class="g2"><div class="card tw"><b>Desempeño por mozo</b><table style="min-width:420px;margin-top:6px"><tr><th>Mozo</th><th>Pedidos</th><th>Cobrado</th><th>Efectivo</th><th>Yape/Plin</th><th>Tarjeta</th></tr>
- ${Object.entries(pm).sort((a,b)=>b[1].cob-a[1].cob).map(([n,x])=>`<tr><td><b>${esc(n)}</b></td><td>${x.n}</td><td>${money(x.cob)}</td><td>${money(x.m.efectivo)}</td><td>${money(x.m.yape+x.m.plin)}</td><td>${money(x.m.tarjeta)}</td></tr>`).join('')||'<tr><td colspan="6" class="hint">Sin pedidos en este periodo.</td></tr>'}</table></div>
+ <div class="g2"><div class="card tw"><b>Desempeño por mozo</b><table style="min-width:420px;margin-top:6px"><tr><th>Mozo</th><th>Pedidos</th><th>Cobrado</th><th>Efectivo</th><th>Yape/Plin</th></tr>
+ ${Object.entries(pm).sort((a,b)=>b[1].cob-a[1].cob).map(([n,x])=>`<tr><td><b>${esc(n)}</b></td><td>${x.n}</td><td>${money(x.cob)}</td><td>${money(x.m.efectivo)}</td><td>${money(x.m.yape+x.m.plin)}</td></tr>`).join('')||'<tr><td colspan="5" class="hint">Sin pedidos en este periodo.</td></tr>'}</table></div>
  <div class="card"><b>Más vendidos</b>${top.map(t=>`<div style="margin-top:10px"><div class="row" style="padding:0 0 4px"><span>${esc(t[0])}</span><span class="hint"><b style="color:var(--tx)">${t[1].q}</b> · ${money(t[1].m)}</span></div><div class="bar" style="width:${t[1].q/mx*100}%"></div></div>`).join('')||'<p class="hint">Aún no hay ventas en este periodo.</p>'}</div></div>`;
 }
 function histList(){
