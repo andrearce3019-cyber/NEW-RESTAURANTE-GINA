@@ -116,7 +116,7 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--ac2)}
  .seg.nav{display:grid;grid-template-columns:repeat(3,1fr)}.seg.nav button{padding:6px 2px;font-size:13px}
  .kpi{gap:8px}.kpi .card{padding:10px 12px}.kpi .k b{font-size:18px;padding-right:32px}.kpi .hint{font-size:12px;line-height:1.3}.ki{width:28px;height:28px;font-size:15px;top:9px;right:9px;border-radius:8px}
  .modo button{padding:10px}.modo button b{font-size:15px}.modo button small{font-size:12px}
- .mesas .mb{min-width:92px;padding:6px 10px}
+ .mesas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;overflow:visible}.mesas .mb{min-width:0;padding:6px 8px}.mesas .mb.llevar{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}
  button,input,select,textarea{min-height:40px}
  .tw.card{background:transparent;border:0;box-shadow:none;padding:0}
  .rt,.rt tbody,.rt tr,.rt td{display:block;min-width:0!important;width:auto}
@@ -131,6 +131,9 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--ac2)}
  .rt td:first-child{font-size:16px}
  .tw>b{display:block;margin:4px 2px 8px}
 }
+.item.sinimg{border-left:5px solid var(--c);min-height:78px;justify-content:center}.item.sinimg strong{padding-top:10px;font-size:16px}
+.emi{display:block;width:56px;min-height:30px!important;text-align:center;margin-top:4px;padding:2px;font-size:16px}
+@media(max-width:760px){.grid{gap:8px}.item.sinimg{min-height:70px}}
 </style></head><body><div id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -242,7 +245,7 @@ async function pull(){if(!sb||!me||busy)return;const v=ver;
 const KEYC=['Mesa','Cliente','Producto','Cant.','Monto','Total','Estado','Nombre','Lo usa','Ingreso','Salida','Mozo','Pedidos','Cobrado'];
 document.addEventListener('click',e=>{const tr=e.target.closest('table.rt tr.plg');if(!tr||e.target.closest('button,input,select,a,label'))return;tr.classList.toggle('open')});
 function draw(){
- numerar();
+ numerar();const _sx=[...document.querySelectorAll('.mesas,.ctabs,.seg,.tw')].map(e=>e.scrollLeft),_wy=window.scrollY;
  if(!user&&ONLINE){$('app').innerHTML=loginForm();return}
  if(!user){$('app').innerHTML=`<div class="login"><h1>Mi Restaurante</h1><p class="hint">Prototipo: elige un perfil para ver su pantalla. En la versión real cada persona entra con su usuario y contraseña.</p>
  <button onclick="login('mozo')"><span class="ic">🛎️</span><span><b>Mozo</b><br><span class="hint">Toma pedidos por mesa</span></span></button>
@@ -253,7 +256,8 @@ function draw(){
 
  if(zoomCart&&rv()=='mozo'&&mtab=='pedir')renderZoom();
  document.querySelectorAll('.tw table:not(.pt)').forEach(t=>{t.classList.add('rt');const hs=[...t.rows[0].cells].map(c=>c.textContent.trim());[...t.rows].slice(1).forEach(rw=>[...rw.cells].forEach((c,i)=>{c.dataset.l=hs[i]||'';const x=c.textContent.trim();if(!c.colSpan||c.colSpan<2){if(x==''||x=='—')c.classList.add('vac');if(i>0&&hs[i]&&!rw.classList.contains('click')&&!KEYC.includes(hs[i]))c.classList.add('ext')}}));[...t.rows].slice(1).forEach(rw=>{if(rw.querySelector('.ext:not(.vac)'))rw.classList.add('plg')})});
- document.querySelectorAll('.tabs button.on').forEach(b=>b.scrollIntoView({inline:'center',block:'nearest'}));
+ document.querySelectorAll('.mesas,.ctabs,.seg,.tw').forEach((e,i)=>{if(_sx[i])e.scrollLeft=_sx[i]});if(Math.abs(window.scrollY-_wy)>2)window.scrollTo(0,_wy);
+ if(0)document.querySelectorAll('.tabs button.on').forEach(b=>b.scrollIntoView({inline:'center',block:'nearest'}));
 }
 function login(r){user=r;draw()}
 
@@ -315,7 +319,7 @@ function mozoPedir(){
  return `<div class="modo">${[['local','🏠 Pedido local','Mesas y para llevar'],['fuera','🛵 Pedido por fuera','Reparto · precio libre']].map(m=>`<button class="${modo==m[0]?'on':''}" onclick="setModo('${m[0]}')"><b>${m[1]}</b><small>${m[2]}</small></button>`).join('')}</div>
  ${modo=='fuera'?modoInfo():mesasBar()}
  <div class="two"><div><div class="tabs ctabs">${CATS.map((c,i)=>`<button class="${c==cat?'on':''}" style="--c:${ccol(c)}" onclick="cat=CATS[${i}];draw()">${esc(c)}</button>`).join('')}</div>
- <div class="grid">${prods.map(p=>`<button class="item" style="--c:${ccol(p.c)}" onclick="add(${p.id})"><div class="ph">${p.img?`<img src="${p.img}" alt="">`:emo(p.c)}</div><strong>${esc(p.n)}</strong><span>${money(p.p)}</span>${cart[p.id]?`<i class="qty">${cart[p.id]}</i>`:''}</button>`).join('')||'<p class="hint">No hay productos activos en esta categoría.</p>'}</div></div>
+ <div class="grid">${prods.map(p=>`<button class="item${p.img||p.emo?'':' sinimg'}" style="--c:${ccol(p.c)}" onclick="add(${p.id})">${p.img||p.emo?`<div class="ph">${p.img?`<img src="${p.img}" alt="">`:esc(p.emo)}</div>`:''}<strong>${esc(p.n)}</strong><span>${money(p.p)}</span>${cart[p.id]?`<i class="qty">${cart[p.id]}</i>`:''}</button>`).join('')||'<p class="hint">No hay productos activos en esta categoría.</p>'}</div></div>
  <div><div class="card" id="cart"><div class="row" style="padding:0 0 4px"><b>${ab?`Agregar al pedido N° ${pnum(ab.os[0])} · ${mlab(mesa)}`:`Nuevo pedido · ${mlab(mesa)}`}</b>${lines.length?`<span style="display:flex;gap:2px;flex:none"><button class="g" title="Ver en grande" aria-label="Ver en grande" onclick="renderZoom()">🔍</button><button class="g" style="color:#c0392b" title="Vaciar pedido" onclick="vaciar()">🗑️</button></span>`:''}</div>
  ${ab?`<p class="hint" style="margin:4px 0">Este pedido sigue abierto: lo que envíes se suma a él.</p>`:''}
  ${cartBody(false)}
@@ -452,8 +456,8 @@ function prodTab(){
  <div class="card" style="border-left:5px solid #d9a400"><div class="row" style="flex-wrap:wrap"><span><b>🎓 Modo práctica (capacitación)</b><div class="hint">Para practicar <b>todos a la vez</b> (antes de abrir). Para capacitar a <b>un solo mozo nuevo</b> mientras los demás trabajan normal, ve a <b>👥 Personal</b> → <b>🎓 Poner en práctica</b>.${(S.prac||[]).length?'<br>En práctica ahora: <b>'+S.prac.map(esc).join(', ')+'</b>':''}</div></span><span style="display:flex;gap:8px;flex-wrap:wrap">${S.practica?'<button onclick="setPractica(false)">Desactivar</button>':'<button class="p" onclick="setPractica(true)">Activar práctica</button>'}${S.orders.some(o=>o.prueba)?'<button class="g" style="color:#c0392b" onclick="borrarPruebas()">Borrar pedidos de práctica</button>':''}</span></div></div>
  <div class="card"><div class="row" style="flex-wrap:wrap"><span><b>Mesas del local</b><div class="hint">Cuántas mesas aparecen en la pantalla del mozo.</div></span><input type="number" min="1" max="60" value="${S.mesas||8}" style="width:100px" onchange="setMesas(this.value)"></div></div>
  ${catCard()}
- <div class="card tw"><table class="pt"><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Precio (S/)</th><th>Activo</th></tr>
- ${S.products.map(p=>`<tr><td><label class="thumb">${p.img?`<img src="${p.img}" alt="">`:'📷'}<input type="file" accept="image/*" hidden onchange="foto(${p.id},this.files[0])"></label>${p.img?`<button class="g" style="min-height:24px;padding:0" onclick="upd(${p.id},'img','');draw()">Quitar</button>`:''}</td><td><input value="${esc(p.n)}" onchange="upd(${p.id},'n',this.value)"></td><td><select onchange="upd(${p.id},'c',this.value)">${CATS.map(c=>`<option ${c==p.c?'selected':''}>${esc(c)}</option>`).join('')}</select></td><td><input type="number" step="0.5" min="0" value="${p.p}" onchange="upd(${p.id},'p',+this.value)"></td><td><input type="checkbox" ${p.a?'checked':''} onchange="upd(${p.id},'a',this.checked)" style="width:auto"></td></tr>`).join('')}</table></div>
+ <div class="card tw"><table class="pt"><tr><th>Foto / ícono</th><th>Nombre</th><th>Categoría</th><th>Precio (S/)</th><th>Activo</th></tr>
+ ${S.products.map(p=>`<tr><td><label class="thumb">${p.img?`<img src="${p.img}" alt="">`:'📷'}<input type="file" accept="image/*" hidden onchange="foto(${p.id},this.files[0])"></label>${p.img?`<button class="g" style="min-height:24px;padding:0" onclick="upd(${p.id},'img','');draw()">Quitar</button>`:''}<input class="emi" value="${esc(p.emo||'')}" placeholder="ícono" maxlength="4" title="Ícono opcional (emoji)" aria-label="Ícono" onchange="upd(${p.id},'emo',this.value.trim());draw()"></td><td><input value="${esc(p.n)}" onchange="upd(${p.id},'n',this.value)"></td><td><select onchange="upd(${p.id},'c',this.value)">${CATS.map(c=>`<option ${c==p.c?'selected':''}>${esc(c)}</option>`).join('')}</select></td><td><input type="number" step="0.5" min="0" value="${p.p}" onchange="upd(${p.id},'p',+this.value)"></td><td><input type="checkbox" ${p.a?'checked':''} onchange="upd(${p.id},'a',this.checked)" style="width:auto"></td></tr>`).join('')}</table></div>
  <p class="hint">En vez de borrar, desactiva un producto: deja de aparecer al mozo pero se conserva el historial de ventas.</p>`;
 }
 function catCard(){
