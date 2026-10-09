@@ -195,6 +195,12 @@ details.acc summary::after{content:'▾';color:var(--ac);font-weight:800}details
 .cmp .gh{margin:10px 0 5px;font-size:15px}.cmp .big2{min-height:48px;font-size:17px;margin-top:10px}
 .cmp .tg{padding:8px 10px;margin:6px 0}.cmp .seg2 button{min-height:30px;font-size:13px}.cmp .chips2{margin:6px 0}.cmp .chip2 button{min-height:30px;font-size:14px;padding:2px 9px}
 .cmp .paso2{margin:12px 0 6px}.cmp .tps{gap:5px}.cmp .tps label{padding:4px 10px;font-size:13px}.cmp .tcat{padding:3px 0}.cmp input,.cmp .addr button{min-height:38px}
+.lsg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}.lsb{border:1px solid var(--bd);border-radius:12px;padding:10px 12px}
+.tg2{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:#fff6d6;color:#6b5200;margin:0 4px 2px 0}
+.lst{overflow-x:auto;margin-top:6px}.lsT td:first-child,.lsT th:first-child{position:sticky;left:0;background:var(--card,#fff);z-index:1;min-width:120px;max-width:170px;white-space:normal;line-height:1.2}@media(max-width:760px){.lsT{font-size:14px}.lsT th{font-size:12px}.bx{width:30px;height:30px;min-height:30px}}.lsT{width:100%;border-collapse:collapse;font-size:15px}.lsT th{font-size:13px;text-align:center;padding:6px 4px;white-space:nowrap}.lsT th:first-child,.lsT td:first-child{text-align:left}.lsT td{padding:6px 4px;border-top:1px solid var(--bd);text-align:center}
+.bx{width:34px;height:34px;min-height:34px;padding:0;border-radius:8px;border:2px solid var(--bd);font-weight:800;font-size:17px}.bx.on{background:#2a8a56;border-color:#2a8a56;color:#fff}
+.lchk{display:flex;gap:10px;align-items:flex-start;margin-top:12px;cursor:pointer}.lchk input{width:auto;margin-top:4px}
+@media(max-width:760px){.lsT,.lsT tbody{display:table!important}.lsT tr{display:table-row!important}.lsT td,.lsT th{display:table-cell!important}.lsT tr:first-child{display:table-row!important}}
 </style></head><body><div id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -286,7 +292,7 @@ async function pantalla(){try{if('wakeLock' in navigator&&document.visibilitySta
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible'&&me){pantalla();pull()}});
 document.addEventListener('pointerdown',()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(e){}},{passive:true});
 async function push(){if(!sb||!me)return;busy=true;
- try{const d={cats:S.cats,products:S.products,pid:S.pid,mesas:S.mesas||8,practica:!!S.practica,prac:S.prac||[],tpl:S.tpl||[]},cfg=JSON.stringify(d);
+ try{const d={cats:S.cats,products:S.products,pid:S.pid,mesas:S.mesas||8,practica:!!S.practica,prac:S.prac||[],tpl:S.ls?[]:(S.tpl||[]),ls:lsAll()},cfg=JSON.stringify(d);
   if(user=='admin'&&cfg!==cfgSnap){const v=Date.now(),{error}=await sb.from('config').upsert({id:1,ver:v,data:d});if(error)throw error;cfgSnap=cfg;cfgVer=v}
   const cur={};S.orders.forEach(o=>cur[o.id]=JSON.stringify(o));
   const up=S.orders.filter(o=>snap[o.id]!==cur[o.id]).map(o=>({id:o.id,data:o})),del=Object.keys(snap).filter(k=>!(k in cur));
@@ -299,7 +305,7 @@ async function pull(){if(!sb||!me||busy)return;const v=ver;
   if(c.error||o.error||v!=ver||busy)return;
   const before=JSON.stringify([S.cats,S.products,S.orders,S.ag||{}]);
   if(c.data){if(c.data.ver!==cfgVer){const x=await sb.from('config').select('ver,data').eq('id',1).single();if(x.error||v!=ver)return;
-    const d=x.data.data;S.cats=d.cats;CATS=S.cats;S.products=d.products;S.pid=d.pid;S.mesas=d.mesas||8;S.practica=!!d.practica;S.prac=d.prac||[];S.tpl=d.tpl||[];cfgSnap=JSON.stringify(d);cfgVer=x.data.ver}}
+    const d=x.data.data;S.cats=d.cats;CATS=S.cats;S.products=d.products;S.pid=d.pid;S.mesas=d.mesas||8;S.practica=!!d.practica;S.prac=d.prac||[];S.tpl=d.tpl||[];S.ls=d.ls||undefined;cfgSnap=JSON.stringify(d);cfgVer=x.data.ver}}
   else if(user=='admin'){S.cats=[...DEF];CATS=S.cats;S.products=SEED.map((q,i)=>({id:i+1,n:q[0],c:q[1],p:q[2],a:true}));S.pid=SEED.length+1;await push()}
   S.orders=o.data.map(x=>({...x.data,num:x.num})).reverse();snap={};S.orders.forEach(x=>snap[x.id]=JSON.stringify(x));avisos();
   await chequeoExp();try{const e=await sb.from('estado').select('id,data').in('id',['agotados','aglog']);if(!e.error){const m={};(e.data||[]).forEach(x=>m[x.id]=x.data);S.ag=m.agotados||{};S.aglog=m.aglog||[]}}catch(e){}
@@ -355,9 +361,11 @@ function cuentasAbiertas(){const g={};S.orders.filter(o=>!o.cerrada&&enModo(o)).
  return Object.entries(g).map(([k,os])=>({k:+k,os:os.sort((x,y)=>x.t0-y.t0)})).sort((x,y)=>x.os[0].t0-y.os[0].t0)}
 const cuentaDe=m=>cuentasAbiertas().find(c=>c.os[0].mesa==m&&!c.os.some(o=>o.fiado));
 /* ===== TAMAÑOS, OPCIONES Y PLANTILLAS ===== */
-function varDe(p){const ts=(S.tpl||[]).filter(t=>(t.ps||[]).includes(p.id));let sz=p.sz&&p.sz.length?p.sz:null;const g=[];
- ts.forEach(t=>{if(!sz&&t.sz&&t.sz.length)sz=t.sz;(t.g||[]).forEach(x=>{if(x.it&&x.it.length)g.push(x)})});
- if(p.op&&p.op.length&&!ts.length)g.push({n:'Opciones',t:'n',it:p.op});return {sz:sz||[],g,ts}}
+function lsAll(){if(!S.ls){const L=[];(S.tpl||[]).forEach(t=>{const add=(o)=>{const e=L.find(x=>norm(x.n)==norm(o.n)&&!!x.pr==!!o.pr);if(e){o.it.forEach(it=>{if(!e.it.some(y=>norm(y.n)==norm(it.n)))e.it.push(it)});(o.ps||[]).forEach(id=>{if(!e.ps.includes(id))e.ps.push(id)})}else L.push({id:Date.now()+L.length,...o})};
+  if(t.sz&&t.sz.length)add({n:'Vaso',pr:true,it:t.sz.map(z=>({...z})),ps:(t.ps||[]).slice()});(t.g||[]).forEach(g=>add({n:g.n,mul:g.t=='n',it:g.it.map(z=>({...z})),ps:(t.ps||[]).slice()}))});S.ls=L}return S.ls}
+function varDe(p){const ls=lsAll().filter(l=>(l.ps||[]).includes(p.id)&&l.it&&l.it.length);let sz=p.sz&&p.sz.length?p.sz:null;const g=[];
+ ls.forEach(l=>{if(l.pr){if(!sz)sz=l.it}else g.push({n:l.n,t:l.mul?'n':'1',req:!l.mul,it:l.it})});
+ if(p.op&&p.op.length&&!ls.length)g.push({n:'Opciones',t:'n',it:p.op});return {sz:sz||[],g,ts:ls}}
 const tieneVar=p=>{const v=varDe(p);return !!(v.sz.length||v.g.length)};
 const precioTxt=p=>{const z=varDe(p).sz;return z.length?'S/ '+z.map(x=>(+x.p).toFixed(2).replace(/\.00$/,'')).join(' · '):money(p.p)};
 let cartM={},pk=null;
@@ -709,10 +717,10 @@ setInterval(()=>{if(rv()=='cocina'&&ktab=='cola'&&!document.getElementById('mdl'
 
 /* ===== ADMIN ===== */
 function prodTab(){
- return `${agCard()}${tplCard()}<div class="card"><b>Agregar producto</b><div class="row" style="flex-wrap:wrap"><input id="nn" placeholder="Nombre" style="flex:2;min-width:150px"><select id="nc" style="flex:1;min-width:110px">${CATS.map(c=>`<option>${esc(c)}</option>`).join('')}</select><input id="np" type="number" step="0.5" min="0" placeholder="Precio" style="flex:1;min-width:80px"><button class="p" onclick="addProd()">Agregar</button></div></div>
+ return `${agCard()}${lsCard()}<div class="card"><b>Agregar producto</b><div class="row" style="flex-wrap:wrap"><input id="nn" placeholder="Nombre" style="flex:2;min-width:150px"><select id="nc" style="flex:1;min-width:110px">${CATS.map(c=>`<option>${esc(c)}</option>`).join('')}</select><input id="np" type="number" step="0.5" min="0" placeholder="Precio" style="flex:1;min-width:80px"><button class="p" onclick="addProd()">Agregar</button></div></div>
  ${unirCard()}${catCard()}
  <div class="card tw"><table class="pt"><tr><th>Foto / ícono</th><th>Nombre</th><th>Categoría</th><th>Precio (S/)</th><th>Tamaños / opciones</th><th>Activo</th></tr>
- ${S.products.map(p=>`<tr><td><label class="thumb">${p.img?`<img src="${p.img}" alt="">`:'📷'}<input type="file" accept="image/*" hidden onchange="foto(${p.id},this.files[0])"></label>${p.img?`<button class="g" style="min-height:24px;padding:0" onclick="upd(${p.id},'img','');draw()">Quitar</button>`:''}<input class="emi" value="${esc(p.emo||'')}" placeholder="ícono" maxlength="4" title="Ícono opcional (emoji)" aria-label="Ícono" onchange="upd(${p.id},'emo',this.value.trim());draw()"></td><td>${isAg(p)?'<span class="chip" style="--c:#c0392b;margin-bottom:4px">🚫 Agotado hoy</span>':''}<input value="${esc(p.n)}" onchange="upd(${p.id},'n',this.value)"></td><td><select onchange="upd(${p.id},'c',this.value)">${CATS.map(c=>`<option ${c==p.c?'selected':''}>${esc(c)}</option>`).join('')}</select></td><td>${varDe(p).sz.length?`<span class="hint">${precioTxt(p)}</span>`:`<input type="number" step="0.5" min="0" value="${p.p}" onchange="upd(${p.id},'p',+this.value)">`}</td><td><button onclick="edVar(${p.id})">${[...varDe(p).ts.map(t=>'🍲 '+esc(t.n)),p.sz&&p.sz.length?'📏 '+p.sz.length+' tamaños':''].filter(Boolean).join(' · ')||'⚙️ Menú o tamaños'}</button></td><td><input type="checkbox" ${p.a?'checked':''} onchange="upd(${p.id},'a',this.checked)" style="width:auto"></td></tr>`).join('')}</table></div>
+ ${S.products.map(p=>`<tr><td><label class="thumb">${p.img?`<img src="${p.img}" alt="">`:'📷'}<input type="file" accept="image/*" hidden onchange="foto(${p.id},this.files[0])"></label>${p.img?`<button class="g" style="min-height:24px;padding:0" onclick="upd(${p.id},'img','');draw()">Quitar</button>`:''}<input class="emi" value="${esc(p.emo||'')}" placeholder="ícono" maxlength="4" title="Ícono opcional (emoji)" aria-label="Ícono" onchange="upd(${p.id},'emo',this.value.trim());draw()"></td><td>${isAg(p)?'<span class="chip" style="--c:#c0392b;margin-bottom:4px">🚫 Agotado hoy</span>':''}<input value="${esc(p.n)}" onchange="upd(${p.id},'n',this.value)"></td><td><select onchange="upd(${p.id},'c',this.value)">${CATS.map(c=>`<option ${c==p.c?'selected':''}>${esc(c)}</option>`).join('')}</select></td><td>${varDe(p).sz.length?`<span class="hint">${precioTxt(p)}</span>`:`<input type="number" step="0.5" min="0" value="${p.p}" onchange="upd(${p.id},'p',+this.value)">`}</td><td><button onclick="edVar(${p.id})">${[...varDe(p).ts.map(t=>esc(t.n)),p.sz&&p.sz.length?'📏 '+p.sz.length+' tamaños':''].filter(Boolean).join(' · ')||'⚙️ Opciones'}</button></td><td><input type="checkbox" ${p.a?'checked':''} onchange="upd(${p.id},'a',this.checked)" style="width:auto"></td></tr>`).join('')}</table></div>
  <p class="hint">En vez de borrar, desactiva un producto: deja de aparecer al mozo pero se conserva el historial de ventas.</p>`;
 }
 let et=null,ev=null;
@@ -727,54 +735,47 @@ function chipsHTML(path,arr,k,rer){return `<div class="chips2">${arr.map((o,i)=>
 function chipAdd(path,k,inp,rer){const o=parseChip(inp.value,k);if(!o)return;getP(path).push(o);rer();const n=document.querySelector('[data-path="'+path+'"]');if(n)n.focus()}
 function chipEd(path,i,k,rer){const a=getP(path),o=a[i],v=prompt(k=='sz'?'Corrige el tamaño y precio (ej: Grande 5):':'Corrige la opción. Si se cobra aparte, agrega + y el precio (ej: Huevo frito +1.50):',k=='sz'?o.n+' '+o.p:o.n+(+o.p?' +'+o.p:''));if(v==null)return;
  if(!v.trim()){a.splice(i,1);return rer()}const x=parseChip(v,k);if(x){a[i]=x;rer()}}
-/* menús (plantillas) */
-const TPLX={alm:{n:'Menú almuerzo',sz:[],g:[{n:'Sopa',t:'1',it:[{n:'Sopa de pollo',p:0}]},{n:'Bebida',t:'1',it:[{n:'Chicha morada',p:0}]}],ps:[]},
- vaso:{n:'Vasos cremolada',sz:[{n:'Chico',p:3},{n:'Mediano',p:4},{n:'Grande',p:5}],g:[],ps:[]}};
-const tplResumen=t=>[...(t.g||[]).map(g=>'<b>'+esc(g.n)+':</b> '+g.it.map(o=>esc(o.n)).join(' / ')),t.sz&&t.sz.length?'<b>Tamaños:</b> '+t.sz.map(z=>esc(z.n)+' '+money(+z.p)).join(' / '):''].filter(Boolean).join('<br>');
-function tplCard(){const T=S.tpl||[];
- return `<div class="card"><b>🍲 Menús y opciones</b><p class="hint" style="margin:4px 0 8px">Aquí pones lo que el cliente elige con su plato (qué sopa, qué bebida) o los tamaños. Lo escribes una vez y eliges a qué platos se aplica.</p>
- ${T.map((t,i)=>{const n=(t.ps||[]).filter(id=>S.products.some(p=>p.id==id)).length;return `<div class="tpli" onclick="edTpl(${i})"><div><b>${esc(t.n)}</b><div class="hint">${tplResumen(t)}</div><div class="hint" style="margin-top:2px">🍽️ Se aplica a <b>${n} plato(s)</b></div></div><button onclick="event.stopPropagation();edTpl(${i})">✏️ Cambiar</button></div>`}).join('')}
- <div class="row" style="flex-wrap:wrap;justify-content:flex-start;gap:6px;margin-top:8px"><button class="p" onclick="nuevaTpl('alm')">+ Nuevo menú (sopa, bebida…)</button><button onclick="nuevaTpl('vaso')">+ Tamaños (vasos)</button></div></div>`}
-function nuevaTpl(x){et=JSON.parse(JSON.stringify(TPLX[x]));et.i=-1;tplRender(true)}
-function edTpl(i){et=JSON.parse(JSON.stringify(S.tpl[i]));et.g=et.g||[];et.sz=et.sz||[];et.ps=et.ps||[];et.i=i;tplRender(true)}
-function tplRender(nuevo){const cats=CATS.filter(c=>S.products.some(p=>p.c==c));
- (nuevo===true?modal:modalKeep)(`<div class="row"><b style="font-size:20px">${et.i>=0?'Cambiar menú':'Nuevo menú'}</b><button class="g" onclick="et=null;cerrarModal()">Cerrar ✕</button></div>
- <label class="hint" style="display:block;margin-top:8px">Nombre</label><input value="${esc(et.n)}" placeholder="Ej: Menú almuerzo" oninput="et.n=this.value" style="font-weight:700">
- <div class="paso2"><span class="pn">1</span><b>¿Qué elige el cliente?</b></div>
- ${et.g.map((g,gi)=>`<div class="tg"><div class="row" style="padding:0 0 6px;gap:6px"><input value="${esc(g.n)}" placeholder="Ej: Sopa, Bebida, Ensalada" oninput="et.g[${gi}].n=this.value" style="font-weight:700;flex:1;min-width:0"><button class="g" style="color:#c0392b;flex:none" onclick="if(confirm('¿Quitar ${esc(g.n||'este grupo').replace(/'/g,'')}?')){et.g.splice(${gi},1);tplRender()}">🗑️</button></div>
-  <div class="seg2"><button class="${g.t=='1'?'on':''}" onclick="et.g[${gi}].t='1';tplRender()">Elige solo 1</button><button class="${g.t=='n'?'on':''}" onclick="et.g[${gi}].t='n';tplRender()">Puede elegir varios</button></div>
-  ${chipsHTML('et.g['+gi+'].it',g.it,'op','tplRender')}</div>`).join('')}
- <button onclick="et.g.push({n:'',t:'1',it:[]});tplRender()">+ Otra cosa para elegir (ej. Bebida, Ensalada)</button>
- <p class="hint" style="margin:6px 0 0">💡 Todo es gratis (incluido). Si algo se cobra aparte, escríbelo con + y el precio: <b>Huevo frito +1.50</b></p>
- <div class="paso2"><span class="pn">2</span><b>Tamaños</b> <small class="hint">· solo si se vende en vasos o porciones</small></div>
- ${et.sz.length||et.showSz?chipsHTML('et.sz',et.sz,'sz','tplRender'):`<button onclick="et.showSz=true;tplRender()">+ Agregar tamaños</button>`}
- <div class="paso2"><span class="pn">3</span><b>¿A qué platos se aplica?</b> <small class="hint">· ${et.ps.length} marcado(s)</small></div>
- ${cats.map(c=>{const ps=S.products.filter(p=>p.c==c),all=ps.every(p=>et.ps.includes(p.id));return `<div class="tcat"><div class="row" style="padding:4px 0"><b style="color:${ccol(c)}">${esc(c)}</b><button class="g" onclick="tplCat('${esc(c).replace(/'/g,"\\'")}',${!all})">${all?'Quitar todos':'Marcar todos'}</button></div><div class="tps">${ps.map(p=>`<label class="${et.ps.includes(p.id)?'on':''}"><input type="checkbox" ${et.ps.includes(p.id)?'checked':''} onchange="tplP(${p.id},this.checked,this)">${esc(p.n)}</label>`).join('')}</div></div>`}).join('')}
- <button class="p big2" onclick="tplSave()">✅ Guardar</button>
- ${et.i>=0?`<div style="text-align:center;margin-top:6px"><button class="g" style="color:#c0392b" onclick="tplDel()">Eliminar este menú</button></div>`:''}`);mCmp()}
-function tplP(id,on,el){const j=et.ps.indexOf(id);if(on&&j<0)et.ps.push(id);if(!on&&j>=0)et.ps.splice(j,1);if(el)el.parentNode.classList.toggle('on',on)}
-function tplCat(c,on){S.products.filter(p=>p.c==c).forEach(p=>tplP(p.id,on));tplRender()}
-function tplSave(){et.n=et.n.trim();if(!et.n)return alert('Ponle un nombre. Ej: Menú almuerzo');
- const g=et.g.map(x=>({n:x.n.trim(),t:x.t,req:x.t=='1',it:x.it.filter(o=>o.n.trim())})).filter(x=>x.it.length);
- const sinNom=g.find(x=>!x.n);if(sinNom)return alert('Ponle nombre a cada grupo. Ej: Sopa, Bebida');
- const t={n:et.n,sz:et.sz.filter(z=>z.n.trim()),g,ps:et.ps.slice()};
- if(!t.sz.length&&!t.g.length)return alert('Agrega al menos una opción (ej. Sopa de pollo) o un tamaño.');
- if(!t.ps.length&&!confirm('No marcaste ningún plato. ¿Guardar igual?'))return;
- S.tpl=S.tpl||[];if(et.i>=0)S.tpl[et.i]=t;else S.tpl.push(t);
- S.products.forEach(p=>{if(t.ps.includes(p.id)&&p.op)delete p.op});et=null;cerrarModal();save();draw();toast('✅ Menú guardado')}
-function tplDel(){if(!confirm('¿Eliminar “'+et.n+'”? Los platos quedan sin estas opciones. Las ventas no se tocan.'))return;S.tpl.splice(et.i,1);et=null;cerrarModal();save();draw()}
+/* listas de opciones */
+let lsCat='';
+function lsRer(){save();draw()}
+function lsCard(){const L=lsAll();if(!CATS.includes(lsCat))lsCat=CATS.find(c=>S.products.some(p=>p.c==c))||CATS[0];
+ const ps=S.products.filter(p=>p.c==lsCat);
+ return `<div class="card"><b>🧩 Opciones de productos</b><p class="hint" style="margin:4px 0 0">Lo que el mozo debe preguntar al cliente: qué sopa, qué bebida, qué tamaño de vaso, qué cremas…</p>
+ <div class="paso2"><span class="pn">1</span><b>Tus listas de opciones</b></div>
+ <div class="lsg">${L.map((l,i)=>`<div class="lsb"><div class="row" style="padding:0 0 4px;gap:4px"><b>${esc(l.n)}</b><span style="display:flex;gap:2px;flex:none"><button class="g" aria-label="Ajustes de la lista" onclick="lsEd(${i})">✏️</button><button class="g" aria-label="Eliminar lista" onclick="lsDel(${i})">🗑️</button></span></div>
+  ${l.pr?'<span class="tg2">cambia el precio</span>':''}${l.mul?'<span class="tg2">puede elegir varias</span>':''}
+  ${chipsHTML('S.ls['+i+'].it',l.it,l.pr?'sz':'op','lsRer')}</div>`).join('')}</div>
+ <div class="row" style="justify-content:flex-start;flex-wrap:wrap;gap:6px;margin-top:8px"><button class="p" onclick="lsEd(-1)">+ Nueva lista</button><span class="hint">💡 Si algo se cobra aparte escribe: <b>Huevo frito +1.50</b></span></div>
+ <div class="paso2"><span class="pn">2</span><b>¿Qué producto lleva cada lista?</b></div>
+ ${L.length?`<div class="tabs ctabs">${CATS.filter(c=>S.products.some(p=>p.c==c)).map(c=>`<button class="${c==lsCat?'on':''}" style="--c:${ccol(c)}" onclick="lsCat=${JSON.stringify(c).replace(/"/g,"'")};draw()">${esc(c)}</button>`).join('')}</div>
+ <div class="lst"><table class="lsT"><tr><th>Producto</th>${L.map(l=>`<th>${esc(l.n)}</th>`).join('')}</tr>
+ ${ps.map(p=>`<tr><td>${esc(p.n)}${p.a?'':' <span class="hint">(inactivo)</span>'}</td>${L.map((l,i)=>{const on=(l.ps||[]).includes(p.id);return `<td><button class="bx${on?' on':''}" aria-label="${esc(l.n)} para ${esc(p.n)}" onclick="lsTog(${i},${p.id})">${on?'✓':''}</button></td>`}).join('')}</tr>`).join('')}</table></div>
+ <div class="row" style="justify-content:flex-start;gap:6px;flex-wrap:wrap;margin-top:6px">${L.map((l,i)=>`<button class="g" style="font-size:13px" onclick="lsTodos(${i})">Todos con ${esc(l.n)}</button>`).join('')}</div>`:'<p class="hint">Primero crea una lista (ej. Sopa).</p>'}</div>`}
+function lsTog(i,id){const l=S.ls[i];l.ps=l.ps||[];const j=l.ps.indexOf(id);j<0?l.ps.push(id):l.ps.splice(j,1);const p=S.products.find(x=>x.id==id);if(p&&p.op)delete p.op;save();draw()}
+function lsTodos(i){const l=S.ls[i],ps=S.products.filter(p=>p.c==lsCat).map(p=>p.id),all=ps.every(id=>l.ps.includes(id));
+ if(all){if(!confirm('¿Quitar '+l.n+' a todos los de '+lsCat+'?'))return;l.ps=l.ps.filter(id=>!ps.includes(id))}else ps.forEach(id=>{if(!l.ps.includes(id))l.ps.push(id)});save();draw()}
+function lsEd(i){const l=i>=0?S.ls[i]:{n:'',pr:false,mul:false};
+ modal(`<div class="row"><b style="font-size:20px">${i>=0?'Ajustes de la lista':'Nueva lista'}</b><button class="g" onclick="cerrarModal()">Cerrar ✕</button></div>
+ <label class="hint" style="display:block;margin-top:8px">Nombre</label><input id="lsn" value="${esc(l.n)}" placeholder="Ej: Sopa, Bebida, Vaso, Cremas, Sabor">
+ <label class="lchk"><input type="checkbox" id="lspr" ${l.pr?'checked':''}><span><b>Cambia el precio</b><br><small class="hint">Para tamaños: Chico 3, Mediano 4, Grande 5. Se cobra el precio que elija.</small></span></label>
+ <label class="lchk"><input type="checkbox" id="lsmu" ${l.mul?'checked':''}><span><b>Puede elegir varias</b><br><small class="hint">Ej. cremas: mayonesa y ají. Si no la marcas, elige solo una (o "Sin …").</small></span></label>
+ <button class="p big2" onclick="lsOk(${i})">✅ Guardar</button>`);mCmp()}
+function lsOk(i){const n=$('lsn').value.trim();if(!n)return alert('Ponle un nombre. Ej: Sopa');const pr=$('lspr').checked,mul=pr?false:$('lsmu').checked;
+ S.ls=lsAll();if(i>=0)Object.assign(S.ls[i],{n,pr,mul});else S.ls.push({id:Date.now(),n,pr,mul,it:[],ps:[]});cerrarModal();save();draw();
+ if(i<0)setTimeout(()=>{const x=document.querySelector('[data-path="S.ls['+(S.ls.length-1)+'].it"]');if(x){x.scrollIntoView({block:'center'});x.focus()}},50)}
+function lsDel(i){const l=S.ls[i];if(!confirm('¿Eliminar la lista “'+l.n+'”? Los productos ya no preguntarán esto. Las ventas no se tocan.'))return;S.ls.splice(i,1);save();draw()}
 /* editor por producto */
-function edVar(id){const p=S.products.find(x=>x.id==id);ev={id,sz:(p.sz||[]).map(z=>({...z})),tp:(S.tpl||[]).map((t,i)=>(t.ps||[]).includes(id)?i:-1).filter(i=>i>=0),showSz:false};evRender(true)}
-function evRender(nuevo){const p=S.products.find(x=>x.id==ev.id),T=S.tpl||[];
+function edVar(id){const p=S.products.find(x=>x.id==id);ev={id,sz:(p.sz||[]).map(z=>({...z})),tp:lsAll().map((t,i)=>(t.ps||[]).includes(id)?i:-1).filter(i=>i>=0),showSz:false};evRender(true)}
+function evRender(nuevo){const p=S.products.find(x=>x.id==ev.id),T=lsAll();
  (nuevo===true?modal:modalKeep)(`<div class="row"><b style="font-size:20px">${esc(p.n)}</b><button class="g" onclick="ev=null;cerrarModal()">Cerrar ✕</button></div>
- <div class="paso2"><span class="pn">1</span><b>¿Qué menú lleva?</b></div>
- ${T.length?`<div class="tps">${T.map((t,i)=>`<label class="${ev.tp.includes(i)?'on':''}"><input type="checkbox" ${ev.tp.includes(i)?'checked':''} onchange="const j=ev.tp.indexOf(${i});this.checked?(j<0&&ev.tp.push(${i})):(j>=0&&ev.tp.splice(j,1));this.parentNode.classList.toggle('on',this.checked)">${esc(t.n)}</label>`).join('')}</div><p class="hint" style="margin:6px 0 0">Para cambiar qué sopas o bebidas trae un menú, ve a 🍽️ Menú → 🍲 Menús y opciones.</p>`:`<p class="hint">Aún no tienes menús. Créalos en 🍽️ Menú → 🍲 Menús y opciones.</p>`}
+ <div class="paso2"><span class="pn">1</span><b>¿Qué opciones pregunta el mozo?</b></div>
+ ${T.length?`<div class="tps">${T.map((t,i)=>`<label class="${ev.tp.includes(i)?'on':''}"><input type="checkbox" ${ev.tp.includes(i)?'checked':''} onchange="const j=ev.tp.indexOf(${i});this.checked?(j<0&&ev.tp.push(${i})):(j>=0&&ev.tp.splice(j,1));this.parentNode.classList.toggle('on',this.checked)">${esc(t.n)}</label>`).join('')}</div><p class="hint" style="margin:6px 0 0">Las listas se editan en 🍽️ Menú → 🧩 Opciones de productos.</p>`:`<p class="hint">Aún no tienes listas. Créalas en 🍽️ Menú → 🧩 Opciones de productos.</p>`}
  <div class="paso2"><span class="pn">2</span><b>Tamaños propios</b> <small class="hint">· si este producto tiene sus propios precios por tamaño</small></div>
  ${ev.sz.length||ev.showSz?chipsHTML('ev.sz',ev.sz,'sz','evRender'):`<button onclick="ev.showSz=true;evRender()">+ Agregar tamaños</button>`}
  ${p.op&&p.op.length?`<div class="warn" style="margin-top:10px">Tiene opciones antiguas (${p.op.map(o=>esc(o.n)).join(', ')}). Se borran al guardar.</div>`:''}
  <button class="p big2" onclick="evSave()">✅ Guardar</button>`);mCmp()}
 function evSave(){const p=S.products.find(x=>x.id==ev.id);p.sz=ev.sz.filter(z=>z.n.trim());if(p.sz.length)p.p=+p.sz[0].p;delete p.op;
- (S.tpl||[]).forEach((t,i)=>{t.ps=t.ps||[];const has=t.ps.includes(p.id);if(ev.tp.includes(i)&&!has)t.ps.push(p.id);if(!ev.tp.includes(i)&&has)t.ps=t.ps.filter(x=>x!=p.id)});
+ lsAll().forEach((t,i)=>{t.ps=t.ps||[];const has=t.ps.includes(p.id);if(ev.tp.includes(i)&&!has)t.ps.push(p.id);if(!ev.tp.includes(i)&&has)t.ps=t.ps.filter(x=>x!=p.id)});
  ev=null;cerrarModal();save();draw();toast('✅ Guardado')}
 const SZRX=/^(.*?)\s*\(\s*([^()]+?)\s*\)\s*$/;
 function gruposTam(){const g={};S.products.forEach(p=>{if(p.sz&&p.sz.length)return;const m=p.n.match(SZRX);if(!m)return;const k=p.c+'|'+norm(m[1]);(g[k]=g[k]||{c:p.c,n:m[1].trim(),ps:[]}).ps.push({p,t:m[2]})});return Object.values(g).filter(x=>x.ps.length>1)}
