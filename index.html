@@ -201,6 +201,11 @@ details.acc summary::after{content:'▾';color:var(--ac);font-weight:800}details
 .bx{width:34px;height:34px;min-height:34px;padding:0;border-radius:8px;border:2px solid var(--bd);font-weight:800;font-size:17px}.bx.on{background:#2a8a56;border-color:#2a8a56;color:#fff}
 .lchk{display:flex;gap:10px;align-items:flex-start;margin-top:12px;cursor:pointer}.lchk input{width:auto;margin-top:4px}
 @media(max-width:760px){.lsT,.lsT tbody{display:table!important}.lsT tr{display:table-row!important}.lsT td,.lsT th{display:table-cell!important}.lsT tr:first-child{display:table-row!important}}
+.lits{margin:6px 0}.lit{display:flex;align-items:center;gap:6px;border-bottom:1px dashed var(--bd);padding:2px 0}.lit .lin{flex:1;text-align:left;padding:6px 2px;min-height:34px;font-weight:600}
+.pz{font-size:13px;white-space:nowrap;padding:2px 8px;border-radius:99px;background:#eef2ff;color:#2b3a8a}.pz.gr{background:#e6f4ec;color:#155c37}.pz.ex{background:#fff1dc;color:#8a4b00}
+.addr .pin2{flex:0 0 92px;width:92px}.addr button{min-width:44px}
+.lchk{border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-top:8px}.lchk.on{border-color:#2a8a56;background:#e6f4ec}
+.lsT tr.tod td{border-top:2px solid var(--bd)}@media(max-width:760px){.ppi{width:54px!important}.ppT td:first-child,.ppT th:first-child{min-width:90px}}.ppi{width:76px;min-height:34px;text-align:center;padding:4px}.ppi.dif{border-color:#d9a400;background:#fff6d6;font-weight:700}
 </style></head><body><div id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -212,7 +217,7 @@ const SUPA_URL='https://urhinovcskzbaknufbnr.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyaGlub3Zjc2t6YmFrbnVmYm5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyOTE3MDAsImV4cCI6MjEwNjg2NzcwMH0.yr9QZmELXin-JiFHmjJS61nW5UuQoSmGxM32KaCUv7o';
 /* ====================================================================== */
 const ONLINE=/^https:\/\//.test(SUPA_URL);
-let pstep='donde',regT='todo',regPer='hoy',regQ='',regVista='lista',masSub='per',openSec={pag:true},agAdm=false,bq='',busF=false,agMode=false,vp='real',ptab='ent',cobCli='',cobMoz='',cobSolo=false,cartP={},zoomCart=false,modo='local',htipo='',myUser='',enUso=null,sesIni=0,lastLat=0,P=null,lastP=0,pdia='',addTo=null,vista='admin',myName='Local',mtab='pedir',ktab='cola',rper='hoy',pagoSel='',NUM={};const rv=()=>user=='admin'?vista:user;
+let ppCat='',ppQ='',prodCat='',prodQ='',pstep='donde',regT='todo',regPer='hoy',regQ='',regVista='lista',masSub='per',openSec={pag:true},agAdm=false,bq='',busF=false,agMode=false,vp='real',ptab='ent',cobCli='',cobMoz='',cobSolo=false,cartP={},zoomCart=false,modo='local',htipo='',myUser='',enUso=null,sesIni=0,lastLat=0,P=null,lastP=0,pdia='',addTo=null,vista='admin',myName='Local',mtab='pedir',ktab='cola',rper='hoy',pagoSel='',NUM={};const rv=()=>user=='admin'?vista:user;
 let actx=null,primera=true,vNuevo=new Set(),vListo=new Set(),swReg=null,wl=null,avisosOn=!!(window.Notification&&Notification.permission=='granted');
 let sb=null,me=null,snap={},cfgSnap='',cfgVer=0,ver=0,busy=false,tm=null,ch=null;
 const K='resto_proto_v1';
@@ -362,9 +367,10 @@ function cuentasAbiertas(){const g={};S.orders.filter(o=>!o.cerrada&&enModo(o)).
 const cuentaDe=m=>cuentasAbiertas().find(c=>c.os[0].mesa==m&&!c.os.some(o=>o.fiado));
 /* ===== TAMAÑOS, OPCIONES Y PLANTILLAS ===== */
 function lsAll(){if(!S.ls){const L=[];(S.tpl||[]).forEach(t=>{const add=(o)=>{const e=L.find(x=>norm(x.n)==norm(o.n)&&!!x.pr==!!o.pr);if(e){o.it.forEach(it=>{if(!e.it.some(y=>norm(y.n)==norm(it.n)))e.it.push(it)});(o.ps||[]).forEach(id=>{if(!e.ps.includes(id))e.ps.push(id)})}else L.push({id:Date.now()+L.length,...o})};
-  if(t.sz&&t.sz.length)add({n:'Vaso',pr:true,it:t.sz.map(z=>({...z})),ps:(t.ps||[]).slice()});(t.g||[]).forEach(g=>add({n:g.n,mul:g.t=='n',it:g.it.map(z=>({...z})),ps:(t.ps||[]).slice()}))});S.ls=L}return S.ls}
+  if(t.sz&&t.sz.length)add({n:'Vaso',pr:true,it:t.sz.map(z=>({...z})),ps:(t.ps||[]).slice()});(t.g||[]).forEach(g=>add({n:g.n,mul:g.t=='n',it:g.it.map(z=>({...z})),ps:(t.ps||[]).slice()}))});S.ls=L}S.ls.forEach(l=>{if(!l.pr&&/tama|vaso/i.test(l.n)&&!(l.it||[]).length){l.pr=true;l.mul=false}});return S.ls}
+const lsPrecio=(l,pid,it)=>l.pp&&l.pp[pid]&&l.pp[pid][it.n]!=null?+l.pp[pid][it.n]:+it.p;
 function varDe(p){const ls=lsAll().filter(l=>(l.ps||[]).includes(p.id)&&l.it&&l.it.length);let sz=p.sz&&p.sz.length?p.sz:null;const g=[];
- ls.forEach(l=>{if(l.pr){if(!sz)sz=l.it}else g.push({n:l.n,t:l.mul?'n':'1',req:!l.mul,it:l.it})});
+ ls.forEach(l=>{if(l.pr){if(!sz)sz=l.it.map(it=>({n:it.n,p:lsPrecio(l,p.id,it)}))}else g.push({n:l.n,t:l.mul?'n':'1',req:!l.mul,it:l.it})});
  if(p.op&&p.op.length&&!ls.length)g.push({n:'Opciones',t:'n',it:p.op});return {sz:sz||[],g,ts:ls}}
 const tieneVar=p=>{const v=varDe(p);return !!(v.sz.length||v.g.length)};
 const precioTxt=p=>{const z=varDe(p).sz;return z.length?'S/ '+z.map(x=>(+x.p).toFixed(2).replace(/\.00$/,'')).join(' · '):money(p.p)};
@@ -719,8 +725,10 @@ setInterval(()=>{if(rv()=='cocina'&&ktab=='cola'&&!document.getElementById('mdl'
 function prodTab(){
  return `${agCard()}${lsCard()}<div class="card"><b>Agregar producto</b><div class="row" style="flex-wrap:wrap"><input id="nn" placeholder="Nombre" style="flex:2;min-width:150px"><select id="nc" style="flex:1;min-width:110px">${CATS.map(c=>`<option>${esc(c)}</option>`).join('')}</select><input id="np" type="number" step="0.5" min="0" placeholder="Precio" style="flex:1;min-width:80px"><button class="p" onclick="addProd()">Agregar</button></div></div>
  ${unirCard()}${catCard()}
+ <div class="card"><b>📋 Tus productos</b><div class="tabs ctabs" style="margin-top:8px"><button class="${prodCat==''?'on':''}" style="--c:#0b4f40" onclick="prodCat='';draw()">Todos (${S.products.length})</button>${CATS.map(c=>`<button class="${c==prodCat?'on':''}" style="--c:${ccol(c)}" onclick="prodCat=${JSON.stringify(c).replace(/"/g,"'")};draw()">${esc(c)} (${S.products.filter(p=>p.c==c).length})</button>`).join('')}</div>
+ <div class="busq" style="margin:0"><input id="pq" type="search" placeholder="🔍 Buscar producto…" value="${esc(prodQ)}" oninput="prodQ=this.value;draw();const x=$('pq');x.focus();x.setSelectionRange(x.value.length,x.value.length)">${prodQ?`<button class="g" onclick="prodQ='';draw()">✕</button>`:''}</div></div>
  <div class="card tw"><table class="pt"><tr><th>Foto / ícono</th><th>Nombre</th><th>Categoría</th><th>Precio (S/)</th><th>Tamaños / opciones</th><th>Activo</th></tr>
- ${S.products.map(p=>`<tr><td><label class="thumb">${p.img?`<img src="${p.img}" alt="">`:'📷'}<input type="file" accept="image/*" hidden onchange="foto(${p.id},this.files[0])"></label>${p.img?`<button class="g" style="min-height:24px;padding:0" onclick="upd(${p.id},'img','');draw()">Quitar</button>`:''}<input class="emi" value="${esc(p.emo||'')}" placeholder="ícono" maxlength="4" title="Ícono opcional (emoji)" aria-label="Ícono" onchange="upd(${p.id},'emo',this.value.trim());draw()"></td><td>${isAg(p)?'<span class="chip" style="--c:#c0392b;margin-bottom:4px">🚫 Agotado hoy</span>':''}<input value="${esc(p.n)}" onchange="upd(${p.id},'n',this.value)"></td><td><select onchange="upd(${p.id},'c',this.value)">${CATS.map(c=>`<option ${c==p.c?'selected':''}>${esc(c)}</option>`).join('')}</select></td><td>${varDe(p).sz.length?`<span class="hint">${precioTxt(p)}</span>`:`<input type="number" step="0.5" min="0" value="${p.p}" onchange="upd(${p.id},'p',+this.value)">`}</td><td><button onclick="edVar(${p.id})">${[...varDe(p).ts.map(t=>esc(t.n)),p.sz&&p.sz.length?'📏 '+p.sz.length+' tamaños':''].filter(Boolean).join(' · ')||'⚙️ Opciones'}</button></td><td><input type="checkbox" ${p.a?'checked':''} onchange="upd(${p.id},'a',this.checked)" style="width:auto"></td></tr>`).join('')}</table></div>
+ ${S.products.filter(p=>(!prodCat||p.c==prodCat)&&(!prodQ.trim()||norm(p.n).includes(norm(prodQ)))).map(p=>`<tr><td><label class="thumb">${p.img?`<img src="${p.img}" alt="">`:'📷'}<input type="file" accept="image/*" hidden onchange="foto(${p.id},this.files[0])"></label>${p.img?`<button class="g" style="min-height:24px;padding:0" onclick="upd(${p.id},'img','');draw()">Quitar</button>`:''}<input class="emi" value="${esc(p.emo||'')}" placeholder="ícono" maxlength="4" title="Ícono opcional (emoji)" aria-label="Ícono" onchange="upd(${p.id},'emo',this.value.trim());draw()"></td><td>${isAg(p)?'<span class="chip" style="--c:#c0392b;margin-bottom:4px">🚫 Agotado hoy</span>':''}<input value="${esc(p.n)}" onchange="upd(${p.id},'n',this.value)"></td><td><select onchange="upd(${p.id},'c',this.value)">${CATS.map(c=>`<option ${c==p.c?'selected':''}>${esc(c)}</option>`).join('')}</select></td><td>${varDe(p).sz.length?`<span class="hint">${precioTxt(p)}</span>`:`<input type="number" step="0.5" min="0" value="${p.p}" onchange="upd(${p.id},'p',+this.value)">`}</td><td><button onclick="edVar(${p.id})">${[...varDe(p).ts.map(t=>esc(t.n)),p.sz&&p.sz.length?'📏 '+p.sz.length+' tamaños':''].filter(Boolean).join(' · ')||'⚙️ Opciones'}</button></td><td><input type="checkbox" ${p.a?'checked':''} onchange="upd(${p.id},'a',this.checked)" style="width:auto"></td></tr>`).join('')}</table></div>
  <p class="hint">En vez de borrar, desactiva un producto: deja de aparecer al mozo pero se conserva el historial de ventas.</p>`;
 }
 let et=null,ev=null;
@@ -738,31 +746,62 @@ function chipEd(path,i,k,rer){const a=getP(path),o=a[i],v=prompt(k=='sz'?'Corrig
 /* listas de opciones */
 let lsCat='';
 function lsRer(){save();draw()}
+const lsTipo=l=>l.pr?'📏 Tamaño · cambia el precio':l.mul?'☑️ Puede elegir varias':'1️⃣ Elige solo una';
+function lsItem(l,i,o,j){const pr=l.pr?`<b class="pz">${money(+o.p)}</b>`:+o.p?`<b class="pz ex">+ ${money(+o.p)}</b>`:`<b class="pz gr">Gratis</b>`;
+ return `<div class="lit"><button class="g lin" onclick="lsItEd(${i},${j})">${esc(o.n)}</button>${pr}<button class="g x" aria-label="Quitar" onclick="S.ls[${i}].it.splice(${j},1);lsRer()">✕</button></div>`}
 function lsCard(){const L=lsAll();if(!CATS.includes(lsCat))lsCat=CATS.find(c=>S.products.some(p=>p.c==c))||CATS[0];
- const ps=S.products.filter(p=>p.c==lsCat);
+ const ps=S.products.filter(p=>p.c==lsCat),tam=L.map((l,i)=>[l,i]).filter(([l])=>l.pr&&l.it.length&&(l.ps||[]).length);
  return `<div class="card"><b>🧩 Opciones de productos</b><p class="hint" style="margin:4px 0 0">Lo que el mozo debe preguntar al cliente: qué sopa, qué bebida, qué tamaño de vaso, qué cremas…</p>
  <div class="paso2"><span class="pn">1</span><b>Tus listas de opciones</b></div>
- <div class="lsg">${L.map((l,i)=>`<div class="lsb"><div class="row" style="padding:0 0 4px;gap:4px"><b>${esc(l.n)}</b><span style="display:flex;gap:2px;flex:none"><button class="g" aria-label="Ajustes de la lista" onclick="lsEd(${i})">✏️</button><button class="g" aria-label="Eliminar lista" onclick="lsDel(${i})">🗑️</button></span></div>
-  ${l.pr?'<span class="tg2">cambia el precio</span>':''}${l.mul?'<span class="tg2">puede elegir varias</span>':''}
-  ${chipsHTML('S.ls['+i+'].it',l.it,l.pr?'sz':'op','lsRer')}</div>`).join('')}</div>
- <div class="row" style="justify-content:flex-start;flex-wrap:wrap;gap:6px;margin-top:8px"><button class="p" onclick="lsEd(-1)">+ Nueva lista</button><span class="hint">💡 Si algo se cobra aparte escribe: <b>Huevo frito +1.50</b></span></div>
+ <div class="lsg">${L.map((l,i)=>`<div class="lsb"><div class="row" style="padding:0 0 2px;gap:4px"><b style="font-size:16px">${esc(l.n)}</b><span style="display:flex;gap:2px;flex:none"><button class="g" aria-label="Ajustes de la lista" onclick="lsEd(${i})">✏️</button><button class="g" aria-label="Eliminar lista" onclick="lsDel(${i})">🗑️</button></span></div>
+  <span class="tg2">${lsTipo(l)}</span>
+  <div class="lits">${l.it.map((o,j)=>lsItem(l,i,o,j)).join('')||'<p class="hint" style="margin:6px 0">Aún no hay opciones.</p>'}</div>
+  <div class="addr"><input id="lsa${i}" placeholder="${l.pr?'Ej: Chico':'Nueva opción'}" onkeydown="if(event.key=='Enter'){event.preventDefault();lsAdd(${i})}"><input id="lsp${i}" class="pin2" type="number" step="0.1" min="0" inputmode="decimal" placeholder="${l.pr?'S/ precio':'S/ 0'}" onkeydown="if(event.key=='Enter'){event.preventDefault();lsAdd(${i})}"><button class="p" onclick="lsAdd(${i})">+</button></div>
+  <p class="hint" style="margin:4px 0 0;font-size:12px">${l.pr?'Escribe el tamaño y su precio.':'Precio vacío o 0 = gratis. Con precio = se suma al plato.'}</p></div>`).join('')}</div>
+ <button class="p" style="margin-top:8px" onclick="lsEd(-1)">+ Nueva lista</button>
  <div class="paso2"><span class="pn">2</span><b>¿Qué producto lleva cada lista?</b></div>
  ${L.length?`<div class="tabs ctabs">${CATS.filter(c=>S.products.some(p=>p.c==c)).map(c=>`<button class="${c==lsCat?'on':''}" style="--c:${ccol(c)}" onclick="lsCat=${JSON.stringify(c).replace(/"/g,"'")};draw()">${esc(c)}</button>`).join('')}</div>
  <div class="lst"><table class="lsT"><tr><th>Producto</th>${L.map(l=>`<th>${esc(l.n)}</th>`).join('')}</tr>
- ${ps.map(p=>`<tr><td>${esc(p.n)}${p.a?'':' <span class="hint">(inactivo)</span>'}</td>${L.map((l,i)=>{const on=(l.ps||[]).includes(p.id);return `<td><button class="bx${on?' on':''}" aria-label="${esc(l.n)} para ${esc(p.n)}" onclick="lsTog(${i},${p.id})">${on?'✓':''}</button></td>`}).join('')}</tr>`).join('')}</table></div>
- <div class="row" style="justify-content:flex-start;gap:6px;flex-wrap:wrap;margin-top:6px">${L.map((l,i)=>`<button class="g" style="font-size:13px" onclick="lsTodos(${i})">Todos con ${esc(l.n)}</button>`).join('')}</div>`:'<p class="hint">Primero crea una lista (ej. Sopa).</p>'}</div>`}
+ ${ps.map(p=>`<tr><td>${esc(p.n)}${p.a?'':' <span class="hint">(inactivo)</span>'}</td>${L.map((l,i)=>{const on=(l.ps||[]).includes(p.id);return `<td><button class="bx${on?' on':''}" aria-label="${esc(l.n)} para ${esc(p.n)}" onclick="lsTog(${i},${p.id})">${on?'✓':''}</button></td>`}).join('')}</tr>`).join('')}
+ <tr class="tod"><td class="hint">Marcar toda la columna</td>${L.map((l,i)=>`<td><button class="g" style="font-size:12px;padding:2px 4px" onclick="lsTodos(${i})">${ps.every(p=>(l.ps||[]).includes(p.id))?'Quitar':'Todos'}</button></td>`).join('')}</tr></table></div>
+ ${tam.length?(()=>{const enT=p=>tam.some(([l])=>(l.ps||[]).includes(p.id)),cs=CATS.filter(c=>S.products.some(p=>p.c==c&&enT(p)));if(ppCat&&!cs.includes(ppCat))ppCat='';
+ return `<div class="paso2"><span class="pn">3</span><b>Precios por tamaño</b></div>
+ <p class="hint" style="margin:0 0 6px">Todos los productos que se venden por tamaño (cremoladas, jugos, bebidas…). Cambia el precio de cada uno aquí mismo. Si todos cuestan igual, no toques nada.</p>
+ <div class="tabs ctabs"><button class="${ppCat==''?'on':''}" style="--c:#0b4f40" onclick="ppCat='';draw()">Todas</button>${cs.map(c=>`<button class="${c==ppCat?'on':''}" style="--c:${ccol(c)}" onclick="ppCat=${JSON.stringify(c).replace(/"/g,"'")};draw()">${esc(c)}</button>`).join('')}</div>
+ <div class="busq" style="margin:0 0 6px"><input id="ppq" type="search" placeholder="🔍 Buscar producto…" value="${esc(ppQ)}" oninput="ppQ=this.value;draw();const x=$('ppq');x.focus();x.setSelectionRange(x.value.length,x.value.length)">${ppQ?`<button class="g" onclick="ppQ='';draw()">✕</button>`:''}</div>
+ ${tam.map(([l,i])=>{const pl=S.products.filter(p=>(l.ps||[]).includes(p.id)&&(!ppCat||p.c==ppCat)&&(!ppQ.trim()||norm(p.n).includes(norm(ppQ))));if(!pl.length)return '';
+ return `${tam.length>1?`<p class="gh">${esc(l.n)}</p>`:''}<div class="lst"><table class="lsT ppT"><tr><th>Producto</th>${l.it.map(it=>`<th>${esc(it.n)}</th>`).join('')}</tr>
+ ${pl.map(p=>`<tr><td>${esc(p.n)}<div class="hint" style="font-size:11px;color:${ccol(p.c)}">${esc(p.c)}</div></td>${l.it.map(it=>{const v=lsPrecio(l,p.id,it),dif=v!=+it.p;return `<td><input class="ppi${dif?' dif':''}" type="number" step="0.1" min="0" inputmode="decimal" value="${v}" onchange="lsPP(${i},${p.id},'${esc(it.n).replace(/'/g,"\\'")}',this.value)"></td>`}).join('')}</tr>`).join('')}
+ <tr class="tod"><td class="hint">Volver al precio normal${ppCat?' ('+esc(ppCat)+')':''}</td>${l.it.map(it=>`<td><button class="g" style="font-size:12px;padding:2px 4px" onclick="lsPPall(${i},'${esc(it.n).replace(/'/g,"\\'")}')">${money(+it.p)}</button></td>`).join('')}</tr></table></div>`}).join('')||'<p class="hint">No hay productos con ese filtro.</p>'}`})():''}`:'<p class="hint">Primero crea una lista (ej. Sopa).</p>'}</div>`}
+function lsAdd(i){const l=S.ls[i],n=$('lsa'+i).value.trim(),pv=$('lsp'+i).value;if(!n)return $('lsa'+i).focus();
+ if(l.pr&&(pv===''||isNaN(+pv)))return alert('Escribe el precio de “'+n+'”.');
+ l.it.push({n,p:Math.round((+pv||0)*100)/100});save();draw();const x=$('lsa'+i);if(x)x.focus()}
+function lsItEd(i,j){const l=S.ls[i],o=l.it[j];
+ modal(`<div class="row"><b style="font-size:18px">Corregir opción</b><button class="g" onclick="cerrarModal()">Cerrar ✕</button></div>
+ <label class="hint" style="display:block;margin-top:8px">Nombre</label><input id="ein" value="${esc(o.n)}">
+ <label class="hint" style="display:block;margin-top:8px">${l.pr?'Precio del tamaño (S/)':'Precio extra (S/) · 0 = gratis'}</label><input id="eip" type="number" step="0.1" min="0" inputmode="decimal" value="${+o.p}">
+ <button class="p big2" onclick="lsItOk(${i},${j})">✅ Guardar</button>`);mCmp()}
+function lsItOk(i,j){const l=S.ls[i],o=l.it[j],n=$('ein').value.trim();if(!n)return alert('Escribe el nombre.');
+ if(l.pp&&n!=o.n)Object.values(l.pp).forEach(m=>{if(m[o.n]!=null){m[n]=m[o.n];delete m[o.n]}});
+ o.n=n;o.p=Math.round((+$('eip').value||0)*100)/100;cerrarModal();save();draw()}
+function lsPP(i,pid,n,v){const l=S.ls[i],it=l.it.find(x=>x.n==n);v=Math.round((+v||0)*100)/100;l.pp=l.pp||{};l.pp[pid]=l.pp[pid]||{};
+ if(it&&v==+it.p)delete l.pp[pid][n];else l.pp[pid][n]=v;save();draw()}
+function lsPPall(i,n){const l=S.ls[i];if(!l.pp)return;S.products.filter(p=>(!ppCat||p.c==ppCat)&&(!ppQ.trim()||norm(p.n).includes(norm(ppQ)))).forEach(p=>{if(l.pp[p.id])delete l.pp[p.id][n]});save();draw()}
 function lsTog(i,id){const l=S.ls[i];l.ps=l.ps||[];const j=l.ps.indexOf(id);j<0?l.ps.push(id):l.ps.splice(j,1);const p=S.products.find(x=>x.id==id);if(p&&p.op)delete p.op;save();draw()}
 function lsTodos(i){const l=S.ls[i],ps=S.products.filter(p=>p.c==lsCat).map(p=>p.id),all=ps.every(id=>l.ps.includes(id));
  if(all){if(!confirm('¿Quitar '+l.n+' a todos los de '+lsCat+'?'))return;l.ps=l.ps.filter(id=>!ps.includes(id))}else ps.forEach(id=>{if(!l.ps.includes(id))l.ps.push(id)});save();draw()}
-function lsEd(i){const l=i>=0?S.ls[i]:{n:'',pr:false,mul:false};
+function lsEd(i){const l=i>=0?S.ls[i]:{n:'',pr:false,mul:false},t=l.pr?'tam':l.mul?'var':'uno';
+ const op=(v,ti,ej)=>`<label class="lchk${t==v?' on':''}"><input type="radio" name="lst" value="${v}" ${t==v?'checked':''} onchange="document.querySelectorAll('.lchk').forEach(x=>x.classList.toggle('on',x.contains(this)))"><span><b>${ti}</b><br><small class="hint">${ej}</small></span></label>`;
  modal(`<div class="row"><b style="font-size:20px">${i>=0?'Ajustes de la lista':'Nueva lista'}</b><button class="g" onclick="cerrarModal()">Cerrar ✕</button></div>
- <label class="hint" style="display:block;margin-top:8px">Nombre</label><input id="lsn" value="${esc(l.n)}" placeholder="Ej: Sopa, Bebida, Vaso, Cremas, Sabor">
- <label class="lchk"><input type="checkbox" id="lspr" ${l.pr?'checked':''}><span><b>Cambia el precio</b><br><small class="hint">Para tamaños: Chico 3, Mediano 4, Grande 5. Se cobra el precio que elija.</small></span></label>
- <label class="lchk"><input type="checkbox" id="lsmu" ${l.mul?'checked':''}><span><b>Puede elegir varias</b><br><small class="hint">Ej. cremas: mayonesa y ají. Si no la marcas, elige solo una (o "Sin …").</small></span></label>
+ <label class="hint" style="display:block;margin-top:8px">Nombre de la lista</label><input id="lsn" value="${esc(l.n)}" placeholder="Ej: Sopa, Bebida, Vaso, Cremas">
+ <p class="gh">¿Cómo elige el cliente?</p>
+ ${op('uno','1️⃣ Elige solo una','Ej. sopa: de pollo o de carne. Puede ser gratis o con precio.')}
+ ${op('var','☑️ Puede elegir varias','Ej. cremas (mayonesa y ají) o extras (huevo +S/1.50).')}
+ ${op('tam','📏 Es un tamaño y cambia el precio','Ej. vaso Chico S/3, Mediano S/4, Grande S/5. Se cobra el precio del tamaño.')}
  <button class="p big2" onclick="lsOk(${i})">✅ Guardar</button>`);mCmp()}
-function lsOk(i){const n=$('lsn').value.trim();if(!n)return alert('Ponle un nombre. Ej: Sopa');const pr=$('lspr').checked,mul=pr?false:$('lsmu').checked;
+function lsOk(i){const n=$('lsn').value.trim();if(!n)return alert('Ponle un nombre. Ej: Sopa');const t=(document.querySelector('input[name=lst]:checked')||{}).value||'uno',pr=t=='tam',mul=t=='var';
  S.ls=lsAll();if(i>=0)Object.assign(S.ls[i],{n,pr,mul});else S.ls.push({id:Date.now(),n,pr,mul,it:[],ps:[]});cerrarModal();save();draw();
- if(i<0)setTimeout(()=>{const x=document.querySelector('[data-path="S.ls['+(S.ls.length-1)+'].it"]');if(x){x.scrollIntoView({block:'center'});x.focus()}},50)}
+ if(i<0)setTimeout(()=>{const x=$('lsa'+(S.ls.length-1));if(x){x.scrollIntoView({block:'center'});x.focus()}},50)}
 function lsDel(i){const l=S.ls[i];if(!confirm('¿Eliminar la lista “'+l.n+'”? Los productos ya no preguntarán esto. Las ventas no se tocan.'))return;S.ls.splice(i,1);save();draw()}
 /* editor por producto */
 function edVar(id){const p=S.products.find(x=>x.id==id);ev={id,sz:(p.sz||[]).map(z=>({...z})),tp:lsAll().map((t,i)=>(t.ps||[]).includes(id)?i:-1).filter(i=>i>=0),showSz:false};evRender(true)}
