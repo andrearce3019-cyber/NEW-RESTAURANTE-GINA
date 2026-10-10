@@ -206,6 +206,8 @@ details.acc summary::after{content:'▾';color:var(--ac);font-weight:800}details
 .addr .pin2{flex:0 0 92px;width:92px}.addr button{min-width:44px}
 .lchk{border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-top:8px}.lchk.on{border-color:#2a8a56;background:#e6f4ec}
 .lsT tr.tod td{border-top:2px solid var(--bd)}@media(max-width:760px){.ppi{width:54px!important}.ppT td:first-child,.ppT th:first-child{min-width:90px}}.ppi{width:76px;min-height:34px;text-align:center;padding:4px}.ppi.dif{border-color:#d9a400;background:#fff6d6;font-weight:700}
+.perw{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}.perw .seg{margin:0}.rgbt{white-space:nowrap}.rgbt.on{background:#0b4f40;color:#fff;border-color:#0b4f40}
+.rgb{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 10px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--card,#fff)}.rgb label{display:flex;flex-direction:column;gap:2px;min-width:140px;flex:1}
 </style></head><body><div id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -217,7 +219,7 @@ const SUPA_URL='https://urhinovcskzbaknufbnr.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyaGlub3Zjc2t6YmFrbnVmYm5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyOTE3MDAsImV4cCI6MjEwNjg2NzcwMH0.yr9QZmELXin-JiFHmjJS61nW5UuQoSmGxM32KaCUv7o';
 /* ====================================================================== */
 const ONLINE=/^https:\/\//.test(SUPA_URL);
-let ppCat='',ppQ='',prodCat='',prodQ='',pstep='donde',regT='todo',regPer='hoy',regQ='',regVista='lista',masSub='per',openSec={pag:true},agAdm=false,bq='',busF=false,agMode=false,vp='real',ptab='ent',cobCli='',cobMoz='',cobSolo=false,cartP={},zoomCart=false,modo='local',htipo='',myUser='',enUso=null,sesIni=0,lastLat=0,P=null,lastP=0,pdia='',addTo=null,vista='admin',myName='Local',mtab='pedir',ktab='cola',rper='hoy',pagoSel='',NUM={};const rv=()=>user=='admin'?vista:user;
+let ppCat='',ppQ='',prodCat='',prodQ='',pstep='donde',regT='todo',regPer='hoy',regQ='',regVista='tabla',masSub='per',openSec={pag:true},agAdm=false,bq='',busF=false,agMode=false,vp='real',ptab='ent',cobCli='',cobMoz='',cobSolo=false,cartP={},zoomCart=false,modo='local',htipo='',myUser='',enUso=null,sesIni=0,lastLat=0,P=null,lastP=0,pdia='',addTo=null,vista='admin',myName='Local',mtab='pedir',ktab='cola',rper='hoy',pagoSel='',NUM={};const rv=()=>user=='admin'?vista:user;
 let actx=null,primera=true,vNuevo=new Set(),vListo=new Set(),swReg=null,wl=null,avisosOn=!!(window.Notification&&Notification.permission=='granted');
 let sb=null,me=null,snap={},cfgSnap='',cfgVer=0,ver=0,busy=false,tm=null,ch=null;
 const K='resto_proto_v1';
@@ -347,6 +349,9 @@ const pnum=o=>NUM[ck(o)]||'…';
 const stTxt={anulado:'Anulado',nuevo:'En espera',prep:'Preparando',listo:'Listo',entregado:'Entregado'};
 const PAGOS={efectivo:['Efectivo','💵','#2a8a56'],yape:['Yape','📱','#7b2d8e'],plin:['Plin','📲','#12859a']};
 const pagoTag=m=>m&&PAGOS[m]?`<span class="chip" style="--c:${PAGOS[m][2]}">${PAGOS[m][1]} ${PAGOS[m][0]}</span>`:'<span class="hint">—</span>';
+function perSel(opts,cur,v){cur=cur||'hoy';const rg=cur.startsWith('r:'),x=rg?cur.split(':'):[];
+ return `<div class="perw">${seg(opts,rg?'_':cur,v)}<button class="rgbt${rg?' on':''}" onclick="${v}=${rg?"'hoy'":"'r:'+dkey(Date.now())+':'+dkey(Date.now())"};draw()">📅 Elegir fechas</button></div>
+ ${rg?`<div class="rgb"><label><span class="hint">Desde</span><input type="date" value="${x[1]}" onchange="${v}='r:'+this.value+':'+(this.value>'${x[2]}'?this.value:'${x[2]}');draw()"></label><label><span class="hint">Hasta</span><input type="date" value="${x[2]}" onchange="${v}='r:'+(this.value<'${x[1]}'?this.value:'${x[1]}')+':'+this.value;draw()"></label><span class="hint" style="align-self:center">Para un solo día, pon la misma fecha en las dos.</span></div>`:''}`}
 const seg=(arr,cur,v)=>`<div class="seg">${arr.map(t=>`<button class="${cur==t[0]?'on':''}" onclick="${v}='${t[0]}';draw()">${t[1]}</button>`).join('')}</div>`;
 const kpi=(ic,val,lab,col)=>`<div class="card k" style="--c:${col||'var(--ac)'}"><span class="ki">${ic}</span><b>${val}</b><span class="hint">${lab}</span></div>`;
 function agrupar(list){const g={};list.forEach(o=>(g[ck(o)]=g[ck(o)]||[]).push(o));
@@ -559,11 +564,13 @@ function regTab(){if(ONLINE&&(!P||Date.now()-lastP>30000))cargarPersonal();
  let h=`<div class="sec"><h3>🧾 Registros</h3></div>${seg(T,regT,'regT').replace('class="seg"','class="seg chips"')}`;
  if(regT=='cob')return h+cobTab();
  if(regPer=='7d')regPer='hoy';if(regT=='anul'||regT=='corr')regT='todo';
- h+=`${seg([['hoy','Hoy'],['ayer','Ayer'],['mes','Este mes'],['todo','Todo']],regPer,'regPer')}<div class="busq"><input type="search" placeholder="🔍 Buscar cliente, mozo o producto (Enter)" value="${esc(regQ)}" onchange="regQ=this.value;draw()">${regQ?`<button class="g" onclick="regQ='';draw()">✕</button>`:''}</div>`;
+ h+=`${perSel([['hoy','Hoy'],['ayer','Ayer'],['mes','Este mes'],['todo','Todo']],regPer,'regPer')}<div class="busq"><input type="search" placeholder="🔍 Buscar cliente, mozo o producto (Enter)" value="${esc(regQ)}" onchange="regQ=this.value;draw()">${regQ?`<button class="g" onclick="regQ='';draw()">✕</button>`:''}</div>`;
  const ev=regLista(),tot=ev.reduce((a,e)=>a+(e.m||0),0);
  const del=regT=='ag'?`<button class="g" style="color:#c0392b" onclick="borrarAgPer()">Borrar agotados de este periodo</button>`:regT=='turnos'?`<button class="g" style="color:#c0392b" onclick="borrarTurnosPer()">Borrar turnos de este periodo</button>`:`<button class="g" style="color:#c0392b" onclick="borrarMostrados()">Borrar pedidos cerrados de este periodo</button>`;
- h+=`<div class="row" style="flex-wrap:wrap;margin-bottom:8px"><span class="hint">${ev.length} registro(s)${regT=='ventas'||regT=='fiado'||regT=='anul'?' · '+money(tot):''}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${regT=='ventas'?`<button class="g" onclick="regVista=regVista=='tabla'?'lista':'tabla';draw()">${regVista=='tabla'?'☰ Ver como lista':'▦ Ver como tabla'}</button>`:''}<button class="p" onclick="expRegs()">Exportar a Excel</button>${del}</span></div>`;
+ h+=`<div class="row" style="flex-wrap:wrap;margin-bottom:8px"><span class="hint">${ev.length} registro(s)${regT=='ventas'||regT=='fiado'||regT=='anul'?' · '+money(tot):''}</span><span style="display:flex;gap:6px;flex-wrap:wrap"><button class="p" onclick="expRegs()">Exportar a Excel</button>${del}</span></div>`;
  if(regT=='turnos'&&!ONLINE)return h+'<p class="hint">Los turnos están disponibles en la versión en línea.</p>';
+ if(regT=='ventas')h+=seg([['tabla','▦ Detalle completo (fecha, mozo, cliente, productos…)'],['lista','☰ Lista simple']],regVista,'regVista');
+ if(regT=='todo')h+=`<button class="g" style="margin:-4px 0 8px;font-weight:700" onclick="regT='ventas';regVista='tabla';draw()">▦ Ver el detalle completo de ventas ›</button>`;
  if(regT=='ventas'&&regVista=='tabla'){const t=histTab();return h+t.slice(t.indexOf('<div class="card tw">'))}
  return h+(ev.slice(0,300).map(e=>`<div class="ev"><span class="ei">${e.ic}</span><div class="eb"><div class="row" style="padding:0;align-items:flex-start"><b>${esc(e.tit)}</b>${e.m!=null?`<b style="white-space:nowrap">${money(e.m)}</b>`:''}</div><div class="hint">${regPer=='hoy'?'':fec(e.t)+' · '}${hhmm(e.t)} · ${esc(e.sub)}</div>${e.tag||e.k?`<div class="ea">${e.tag||''}${e.k?`<button class="g" onclick="verCuenta(${e.k})">Ver detalle</button>`:''}${e.cob?`<button class="p" onclick="cobrar(${e.k})">Cobrar</button>`:''}</div>`:''}</div></div>`).join('')||'<p class="hint">No hay registros con estos filtros.</p>')+(ev.length>300?'<p class="hint">Se muestran los 300 más recientes. Exporta a Excel para ver todo.</p>':'')}
 function expRegs(){if(regT=='ventas')return exportar();const ev=regLista();if(!ev.length)return alert('No hay registros para exportar.');
@@ -909,7 +916,7 @@ function verPracticas(){const cs=agrupar(S.orders.filter(o=>o.prueba));
  ${cs.length?'<div style="text-align:right;margin-top:10px"><button class="g" style="color:#c0392b" onclick="cerrarModal();borrarPruebas()">Borrar todos los de práctica</button></div>':''}`)}
 function borrarPruebas(){const n=new Set(S.orders.filter(o=>o.prueba).map(ck)).size;if(!n)return alert('No hay pedidos de práctica.');
  if(!confirm('Se borrarán '+n+' pedido(s) de práctica. Los pedidos reales no se tocan. ¿Continuar?'))return;S.orders=S.orders.filter(o=>!o.prueba);save();draw()}
-function enPeriodo(t,p){p=p||rper;const now=new Date(),d=dkey(t),h=dkey(now);
+function enPeriodo(t,p){p=p||rper;const now=new Date(),d=dkey(t),h=dkey(now);if(p.startsWith('r:')){const x=p.split(':');return d>=x[1]&&d<=x[2]}
  if(p=='hoy')return d==h;if(p=='ayer')return d==dkey(now.getTime()-864e5);
  if(p=='7d')return t>=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6).getTime();if(p=='mes')return d.slice(0,7)==h.slice(0,7);return true}
 function repTab(){
@@ -922,7 +929,7 @@ function repTab(){
  const corr=cs.reduce((a,c)=>a+c.os.filter(o=>o.corr).length,0),pct=k=>Math.round(r.m[k]/base*100);
  const agN=(S.aglog||[]).filter(x=>enPeriodo(x.t)).length,pic=picos(cs);
  const sec=(id,tit,res,body)=>`<details class="acc" ${openSec[id]?'open':''} ontoggle="openSec['${id}']=this.open"><summary><b>${tit}</b><span class="hint">${res}</span></summary><div class="accb">${body}</div></details>`;
- return `<div class="sec"><h3>📊 Análisis</h3></div>`+seg([['hoy','Hoy'],['ayer','Ayer'],['7d','7 días'],['mes','Este mes'],['todo','Todo']],rper,'rper')+`
+ return `<div class="sec"><h3>📊 Análisis</h3></div>`+perSel([['hoy','Hoy'],['ayer','Ayer'],['7d','7 días'],['mes','Este mes'],['todo','Todo']],rper,'rper')+`
  <div class="kpi">${kpi('💰',money(r.cob),'Total cobrado')}${kpi('🧾',r.n,'Pedidos','#6f52c0')}${kpi('🎯',money(tk),'Ticket promedio','#12859a')}${kpi('🕒',money(r.abierto),'Por cobrar · '+(r.nab||0)+' pedido(s)','#a8740a')}</div>`
  +sec('pag','💳 Pagos y tipo de venta',r.cob?`Efectivo ${pct('efectivo')}% · Yape ${pct('yape')}% · Plin ${pct('plin')}%`:'Sin cobros',
   `<div class="kpi">${Object.entries(PAGOS).map(([k,v])=>kpi(v[1],money(r.m[k]),v[0],v[2])).join('')}${kpi('🏠',money(loc),'Ventas local','#12859a')}${kpi('🛵',money(fue),'Ventas por fuera','#6f52c0')}</div>
