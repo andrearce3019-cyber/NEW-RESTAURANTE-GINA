@@ -116,7 +116,7 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--ac2)}
  .seg.nav{display:grid;grid-template-columns:repeat(3,1fr)}.seg.nav button{padding:6px 2px;font-size:13px}
  .kpi{gap:8px}.kpi .card{padding:10px 12px}.kpi .k b{font-size:18px;padding-right:32px}.kpi .hint{font-size:12px;line-height:1.3}.ki{width:28px;height:28px;font-size:15px;top:9px;right:9px;border-radius:8px}
  .modo button{padding:10px}.modo button b{font-size:15px}.modo button small{font-size:12px}
- .mesas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;overflow:visible}.mesas .mb{min-width:0;padding:6px 8px}.mesas .mb.llevar{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}
+ .mesas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;overflow:visible}.mesas .mb{min-width:0;padding:6px 8px}.mesas .mb.llevar,.mesas .mb.fcm{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}
  button,input,select,textarea{min-height:40px}
  .tw.card{background:transparent;border:0;box-shadow:none;padding:0}
  .rt,.rt tbody,.rt tr,.rt td{display:block;min-width:0!important;width:auto}
@@ -219,6 +219,8 @@ details.acc summary::after{content:'▾';color:var(--ac);font-weight:800}details
 .mopts{display:grid;gap:8px;margin-top:10px}.mopts button{min-height:48px;text-align:left;padding:0 14px;font-size:16px}
 .edl{border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px}.edl.del{opacity:.55;background:#fdecea}
 #okc:disabled{opacity:.45;filter:grayscale(1)}
+.mb.fcm{border:2px dashed #7a4fd0!important;background:#f6f1ff!important;color:#5b37a8}.mb.fcm small{color:#7a6aa0}
+.cartw{border:2px solid #7a4fd0;background:#f6f1ff;border-radius:12px;padding:10px 12px;margin:0 0 12px;line-height:1.5}
 </style></head><body><div id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -418,7 +420,7 @@ function fueraCarta(){modal(`<div class="row"><b style="font-size:20px">✍️ P
  <div class="row" style="gap:8px;padding:8px 0 0"><label style="flex:1"><span class="hint">Precio S/</span><input id="fcp" type="number" step="0.5" min="0" inputmode="decimal" placeholder="0.00"></label><label style="flex:1"><span class="hint">Cantidad</span><input id="fcq" type="number" min="1" step="1" inputmode="numeric" value="1"></label></div>
  <button class="p big2" onclick="fcOk()">Agregar al pedido</button><button style="width:100%;margin-top:8px" onclick="fcOk(true)">+ Agregar y escribir otro</button>`);mCmp();setTimeout(()=>{const x=$('fcn');if(x)x.focus()},50)}
 function fcOk(otro){const n=$('fcn').value.trim(),pv=$('fcp').value,q=Math.max(1,parseInt($('fcq').value)||1);if(!n)return alert('Escribe qué plato es.');if(pv===''||isNaN(+pv))return alert('Escribe el precio.');
- const k='x'+Date.now();cartM[k]={libre:{n,p:Math.round(+pv*100)/100}};cart[k]=q;cerrarModal();draw();toast('✍️ '+n+' agregado');if(otro)fueraCarta()}
+ const k='x'+Date.now();cartM[k]={libre:{n,p:Math.round(+pv*100)/100}};cart[k]=q;cerrarModal();draw();toast('✍️ '+n+' agregado'+(pstep=='donde'&&!otro?' · ahora elige la mesa':''));if(otro)fueraCarta()}
 function tap(id){const p=S.products.find(x=>x.id==id);if(!p)return;if(!tieneVar(p))return add(String(id));const V=varDe(p);
  pk={id,sz:V.sz.length==1?0:null,sel:V.g.map(g=>g.t=='1'?null:g.it.map((o,i)=>o.d?i:-1).filter(i=>i>=0)),q:1};pickRender(true)}
 function pkTot(){const p=S.products.find(x=>x.id==pk.id),V=varDe(p);let t=pk.sz!=null&&V.sz[pk.sz]?+V.sz[pk.sz].p:(V.sz.length?0:p.p);
@@ -617,7 +619,7 @@ function mozoPedir(){
  const top=masPedidos();if(cat=='⭐'&&!top.length)cat=CATS[0];if(cat!='⭐'&&!CATS.includes(cat))cat=CATS[0];
  if(modo=='fuera')mesa=-1;else if(mesa===-1)mesa=1;
  const modoSel=`<div class="modo">${[['local','🏠 Pedido local','Mesas y para llevar'],['fuera','🛵 Pedido por fuera','Reparto · precio libre']].map(m=>`<button class="${modo==m[0]?'on':''}" onclick="setModo('${m[0]}')"><b>${m[1]}</b><small>${m[2]}</small></button>`).join('')}</div>`;
- if(pstep=='donde')return `<div class="paso"><span class="pn">1</span><b>¿Dónde es el pedido?</b></div>${modoSel}${modo=='fuera'?modoInfo()+`<button class="p big2" onclick="pstep='prod';draw();window.scrollTo(0,0)">🛵 Empezar pedido por fuera</button>`:mesasBar()}`;
+ if(pstep=='donde'){const cl=cartLines(),ct=cl.reduce((a,l)=>a+l.pu*l.q,0);return `<div class="paso"><span class="pn">1</span><b>¿Dónde es el pedido?</b></div>${modoSel}${cl.length?`<div class="cartw">🛒 Ya tienes <b>${cl.reduce((a,l)=>a+l.q,0)} producto(s) · ${money(ct)}</b> (${cl.map(l=>esc(l.n)).join(', ')}).<br>${modo=='fuera'?'Toca <b>Empezar pedido por fuera</b> para continuar.':'Ahora elige la <b>mesa</b> o <b>Para llevar</b>.'} <button class="g" style="color:#c0392b;padding:0 4px;min-height:0" onclick="cart={};cartP={};cartM={};draw()">Borrar</button></div>`:''}${modo=='fuera'?modoInfo()+`<button class="p big2" onclick="pstep='prod';draw();window.scrollTo(0,0)">🛵 Empezar pedido por fuera</button><button class="mb fcm" style="width:100%;margin-top:8px" onclick="fueraCarta()"><b>✍️ Fuera de carta</b><small>Plato que no está en el menú</small></button>`:mesasBar()}`}
  const prods=bq.trim()?S.products.filter(p=>p.a&&norm(p.n).includes(norm(bq))):cat=='⭐'?top:S.products.filter(p=>p.a&&p.c==cat),lines=cartLines();
  const tot=lines.reduce((a,l)=>a+l.pu*l.q,0),ab=destino(),dis=lines.length?'':'disabled';
  const tabs=(top.length?[['⭐','⭐ Más pedidos','#b8860b']]:[]).concat(CATS.map(c=>[c,c,ccol(c)]));
@@ -641,7 +643,7 @@ function mesasBar(){const n=S.mesas||8;if(mesa>n)mesa=1;let libres=0,b='';
   b+=`<button class="mb ${c?'ocu':'lib'} " onclick="mesa=${i};addTo=null;pstep='prod';draw();window.scrollTo(0,0)"><b>Mesa ${i}</b><small>${c?'Ocupada · '+money(t):'Libre'}</small></button>`}
  const ll=cuentasAbiertas().filter(c=>!c.os[0].mesa&&!c.os.some(o=>o.fiado)).length;
  return `<div class="mhead"><b>Mesas</b><span class="hint"><i class="dot" style="background:var(--ok)"></i>${libres} libre${libres==1?'':'s'} <i class="dot" style="background:#d9a400;margin-left:10px"></i>${n-libres} ocupada${n-libres==1?'':'s'}</span></div>
- <div class="mesas"><button class="mb llevar " onclick="mesa=0;addTo=null;pstep='prod';draw();window.scrollTo(0,0)"><b>🛍️ Para llevar</b><small>${ll?ll+' abierto(s)':'Sin mesa'}</small></button>${b}</div>`}
+ <div class="mesas"><button class="mb llevar " onclick="mesa=0;addTo=null;pstep='prod';draw();window.scrollTo(0,0)"><b>🛍️ Para llevar</b><small>${ll?ll+' abierto(s)':'Sin mesa'}</small></button><button class="mb fcm" onclick="fueraCarta()"><b>✍️ Fuera de carta</b><small>No está en el menú</small></button>${b}</div>`}
 function cuentaCard(c){const o0=c.os[0],tot=c.os.reduce((a,o)=>a+total(o),0),vivos=c.os.filter(o=>o.st!='anulado'),listos=vivos.filter(o=>o.st=='listo');
  return `<div class="card pcard"><div class="row" style="align-items:flex-start"><span><b>Pedido N° ${pnum(o0)} · ${mlab(o0.mesa)}${tagP(o0)}</b><div class="hint">${hhmm(o0.t0)}${o0.mozo?' · '+esc(o0.mozo):''}${o0.cliente?' · '+esc(o0.cliente):''}</div></span><b style="font-size:22px;white-space:nowrap">${money(tot)}</b></div>
  ${fiadoInfo(c.os)}
