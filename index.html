@@ -403,13 +403,22 @@ function cartLines(){return Object.entries(cart).map(([k,q])=>{const L=lineaDe(k
 const enCarro=id=>Object.entries(cart).filter(([k])=>k.split('_')[0]==String(id)).reduce((a,[,q])=>a+q,0);
 function mCmp(){const x=document.querySelector('#mdl .sheet');if(x)x.classList.add('cmp')}
 function modalKeep(h){const o=document.querySelector('#mdl .sheet'),st=o?o.scrollTop:0;modal(h);const n=document.querySelector('#mdl .sheet');if(n)n.scrollTop=st}
+function cartEd(k){const l=cartLines().find(x=>x.k==k);if(!l)return;const z=zoomCart,lib=cartM[k]&&cartM[k].libre;
+ modal(`<div class="row"><b style="font-size:20px">✏️ Editar producto</b><button class="g" onclick="cerrarModal();${z?'renderZoom()':''}">Cerrar ✕</button></div>
+ ${lib?`<label class="hint">¿Qué es?</label><input id="cen" value="${esc(lib.n)}">`:`<p style="margin:4px 0 8px"><b>${esc(l.n)}</b></p>`}
+ <div class="row" style="gap:8px;padding:8px 0 0"><label style="flex:1"><span class="hint">Precio S/ (c/u)</span><input id="cep" type="number" step="0.1" min="0" inputmode="decimal" value="${l.pu}"></label><label style="flex:1"><span class="hint">Cantidad</span><input id="ceq" type="number" min="1" step="1" inputmode="numeric" value="${l.q}"></label></div>
+ ${!lib?`<p class="hint" style="margin:6px 0 0">Precio normal: ${money(l.lp)}. Si lo cambias, queda registrado como variación de precio.</p>`:''}
+ <button class="p big2" onclick="cartEdOk('${k}',${z})">✅ Guardar</button>`);mCmp()}
+function cartEdOk(k,z){const pv=$('cep').value,q=Math.max(1,parseInt($('ceq').value)||1);if(pv===''||isNaN(+pv))return alert('Escribe el precio.');const pr=Math.round(+pv*100)/100;
+ if(cartM[k]&&cartM[k].libre){const n=$('cen').value.trim();if(!n)return alert('Escribe qué es.');cartM[k].libre={n,p:pr};delete cartP[k]}else{const l=cartLines().find(x=>x.k==k);if(l&&pr==l.lp)delete cartP[k];else cartP[k]=pr}
+ cart[k]=q;cerrarModal();draw();if(z)renderZoom()}
 function fueraCarta(){modal(`<div class="row"><b style="font-size:20px">✍️ Plato fuera de carta</b><button class="g" onclick="cerrarModal()">Cerrar ✕</button></div>
  <p class="hint" style="margin:4px 0 8px">Para algo que no está en el menú pero sí se puede preparar (ej. Milanesa).</p>
  <label class="hint">¿Qué es?</label><input id="fcn" placeholder="Ej: Milanesa con papas">
  <div class="row" style="gap:8px;padding:8px 0 0"><label style="flex:1"><span class="hint">Precio S/</span><input id="fcp" type="number" step="0.5" min="0" inputmode="decimal" placeholder="0.00"></label><label style="flex:1"><span class="hint">Cantidad</span><input id="fcq" type="number" min="1" step="1" inputmode="numeric" value="1"></label></div>
- <button class="p big2" onclick="fcOk()">Agregar al pedido</button>`);mCmp();setTimeout(()=>{const x=$('fcn');if(x)x.focus()},50)}
-function fcOk(){const n=$('fcn').value.trim(),pv=$('fcp').value,q=Math.max(1,parseInt($('fcq').value)||1);if(!n)return alert('Escribe qué plato es.');if(pv===''||isNaN(+pv))return alert('Escribe el precio.');
- const k='x'+Date.now();cartM[k]={libre:{n,p:Math.round(+pv*100)/100}};cart[k]=q;cerrarModal();draw();toast('✍️ '+n+' agregado')}
+ <button class="p big2" onclick="fcOk()">Agregar al pedido</button><button style="width:100%;margin-top:8px" onclick="fcOk(true)">+ Agregar y escribir otro</button>`);mCmp();setTimeout(()=>{const x=$('fcn');if(x)x.focus()},50)}
+function fcOk(otro){const n=$('fcn').value.trim(),pv=$('fcp').value,q=Math.max(1,parseInt($('fcq').value)||1);if(!n)return alert('Escribe qué plato es.');if(pv===''||isNaN(+pv))return alert('Escribe el precio.');
+ const k='x'+Date.now();cartM[k]={libre:{n,p:Math.round(+pv*100)/100}};cart[k]=q;cerrarModal();draw();toast('✍️ '+n+' agregado');if(otro)fueraCarta()}
 function tap(id){const p=S.products.find(x=>x.id==id);if(!p)return;if(!tieneVar(p))return add(String(id));const V=varDe(p);
  pk={id,sz:V.sz.length==1?0:null,sel:V.g.map(g=>g.t=='1'?null:g.it.map((o,i)=>o.d?i:-1).filter(i=>i>=0)),q:1};pickRender(true)}
 function pkTot(){const p=S.products.find(x=>x.id==pk.id),V=varDe(p);let t=pk.sz!=null&&V.sz[pk.sz]?+V.sz[pk.sz].p:(V.sz.length?0:p.p);
@@ -433,7 +442,7 @@ function pkAdd(){const p=S.products.find(x=>x.id==pk.id),V=varDe(p);
  if(k!=String(pk.id))cartM[k]={sz:pk.sz,sel};cart[k]=(cart[k]||0)+pk.q;pk=null;cerrarModal();draw()}
 function cartBody(big){const ls=cartLines(),fuera=mesa===-1,tot=ls.reduce((a,l)=>a+l.pu*l.q,0);
  if(!ls.length)return '<p class="hint">Toca un producto para agregarlo.</p>';
- return `<div class="${big?'big':''}">${ls.map(l=>`<div class="cl"><div class="row" style="padding:0"><b>${esc(l.n)}</b><button class="g x" aria-label="Quitar" onclick="quitar('${l.k}')">✕</button></div>
+ return `<div class="${big?'big':''}">${ls.map(l=>`<div class="cl"><div class="row" style="padding:0"><b>${esc(l.n)}${l.p.id==null?' <span class="chip" style="--c:#7a4fd0">fuera de carta</span>':''}${l.pu!=l.lp?' <span class="chip" style="--c:#b94a28">precio cambiado</span>':''}</b><span style="display:flex;flex:none"><button class="g x" aria-label="Editar" title="Editar" onclick="cartEd('${l.k}')">✏️</button><button class="g x" aria-label="Quitar" onclick="quitar('${l.k}')">✕</button></span></div>
  <div class="row" style="padding:2px 0 0;gap:6px;justify-content:flex-start">${fuera?`<span class="pin"><span class="hint">Cant.</span><input class="ni" type="number" min="1" step="1" inputmode="numeric" value="${l.q}" onchange="setQ('${l.k}',this.value)"></span><span class="pin"><span class="hint">P. unit. S/</span><input class="ni" type="number" min="0" step="0.1" inputmode="decimal" value="${l.pu}" onchange="setPU('${l.k}',this.value)"></span>`:`<span class="qb"><button class="g" onclick="add('${l.k}',-1)">−</button><b>${l.q}</b><button class="g" onclick="add('${l.k}')">+</button></span><span class="hint">× ${money(l.pu)}</span>`}<b style="margin-left:auto">${money(l.pu*l.q)}</b></div></div>`).join('')}
  <div class="row" style="${big?'font-size:24px;':''}padding-top:8px"><b>Total</b><b>${money(tot)}</b></div></div>`}
 function setQ(id,v){v=parseInt(v);if(!v||v<1){delete cart[id];delete cartP[id];delete cartM[id]}else cart[id]=v;draw()}
