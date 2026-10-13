@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Mi Restaurante · Prototipo</title>
+<title>Restaurante Gina</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b4f41">
+<link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Gina">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
 <style>
 :root{--bg:#f1f5f3;--cd:#fff;--tx:#12211d;--mu:#5c6e68;--ac:#0b6b58;--ac2:#dcefe9;--on:#fff;--hd:#0b4f41;--ye:#f5b800;--wa:#a86a00;--ok:#1f7a45;--bd:#dbe3df;--sh:0 1px 2px #0001,0 6px 16px #0000000d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -221,6 +224,7 @@ details.acc summary::after{content:'▾';color:var(--ac);font-weight:800}details
 #okc:disabled{opacity:.45;filter:grayscale(1)}
 .mb.fcm{border:2px dashed #7a4fd0!important;background:#f6f1ff!important;color:#5b37a8}.mb.fcm small{color:#7a6aa0}
 .cartw{border:2px solid #7a4fd0;background:#f6f1ff;border-radius:12px;padding:10px 12px;margin:0 0 12px;line-height:1.5}
+.instb{background:#f5b800!important;color:#1d1600!important;border-color:#f5b800!important;font-weight:800}
 </style></head><body><div id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -255,7 +259,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const total=o=>o.st=='anulado'?0:o.items.reduce((a,i)=>a+i.p*i.q,0);
 
 /* ===== EN LÍNEA (Supabase) ===== */
-function loginForm(){return `<div class="login"><h1>Mi Restaurante</h1><p class="hint">Ingresa con tu correo y contraseña.</p><div class="card"><input id="lu" type="email" placeholder="Correo electrónico" autocapitalize="none" autocomplete="username" style="margin-bottom:8px"><input id="lp" type="password" placeholder="Contraseña" autocomplete="current-password" onkeydown="if(event.key=='Enter')ingresar()" style="margin-bottom:10px"><button class="p" style="width:100%;display:block" onclick="ingresar()">Entrar</button></div></div>`}
+function loginForm(){return `<div class="login"><img src="icon-192.png" alt="" width="84" height="84" style="border-radius:22px;display:block;margin:0 auto 10px;box-shadow:var(--sh)"><h1>Restaurante Gina</h1><p class="hint">Ingresa con tu correo y contraseña.</p><div class="card"><input id="lu" type="email" placeholder="Correo electrónico" autocapitalize="none" autocomplete="username" style="margin-bottom:8px"><input id="lp" type="password" placeholder="Contraseña" autocomplete="current-password" onkeydown="if(event.key=='Enter')ingresar()" style="margin-bottom:10px"><button class="p" style="width:100%;display:block" onclick="ingresar()">Entrar</button></div>${!esApp()&&(instEv||esIOS)?`<button class="instb" style="width:100%;margin-top:10px;min-height:48px" onclick="instalar()">📲 Instalar app en este equipo</button>`:''}</div>`}
 async function init(){if(!ONLINE)return draw();
  sb=supabase.createClient(SUPA_URL,SUPA_KEY);
  const {data}=await sb.auth.getSession();if(data.session)await enter(data.session.user);else draw()}
@@ -292,6 +296,14 @@ function latido(force){if(!sb||!me||!myName)return;const t=Date.now();if(!force&
  try{if(user!='admin')sb.from('turnos').update({fin:t}).eq('usuario',myUser).eq('inicio',sesIni).then(()=>{},()=>{})}catch(e){}
  try{sb.from('sesiones').upsert({usuario:myUser,nombre:myName,rol:user,visto:t,inicio:sesIni}).then(()=>{},()=>{})}catch(e){}}
 /* ===== AVISOS: sonido, vibración y notificación ===== */
+let instEv=null;const esApp=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true,esIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();instEv=e;try{draw()}catch(x){}});
+window.addEventListener('appinstalled',()=>{instEv=null;toast('✅ App instalada');try{draw()}catch(x){}});
+const instBtn=()=>esApp()||(!instEv&&!esIOS)?'':`<button class="instb" onclick="instalar()">📲<span class="hm"> Instalar app</span></button>`;
+async function instalar(){if(instEv){instEv.prompt();const r=await instEv.userChoice;instEv=null;draw();return}
+ modal(`<div class="row"><b style="font-size:20px">📲 Instalar la app</b><button class="g" onclick="cerrarModal()">Cerrar ✕</button></div>
+ ${esIOS?`<ol style="line-height:1.9;padding-left:20px"><li>Toca el botón <b>Compartir</b> (cuadro con flecha ↑) abajo en Safari.</li><li>Elige <b>“Agregar a pantalla de inicio”</b>.</li><li>Toca <b>Agregar</b>. Listo, aparece el ícono de Gina.</li></ol>`:`<ol style="line-height:1.9;padding-left:20px"><li>Abre el menú <b>⋮</b> del navegador.</li><li>Elige <b>“Instalar aplicación”</b> o <b>“Agregar a pantalla principal”</b>.</li></ol>`}`)}
+try{if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}catch(e){}
 function regSW(){try{if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').then(x=>swReg=x).catch(()=>{})}catch(e){}}
 function sonar(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();const t=actx.currentTime;
  [0,.25,.5].forEach((d,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.value=i==1?1175:880;
@@ -341,7 +353,7 @@ function draw(){
  <button onclick="login('cocina')"><span class="ic">👨‍🍳</span><span><b>Cocina</b><br><span class="hint">Recibe y prepara pedidos</span></span></button>
  <button onclick="login('admin')"><span class="ic">📊</span><span><b>Administrador</b><br><span class="hint">Productos, precios y reportes</span></span></button></div>`;return}
  const names=NAMES;if(ONLINE&&user&&!myName){$('app').innerHTML=nameForm();return}
- $('app').innerHTML=`<div class="top"><b><span class="hm">Restaurante </span>Gina · ${rv()=='admin'?'Admin<span class="hm">istrador</span>':names[rv()]}</b>${user=='admin'?`<select aria-label="Ir a" onchange="vista=this.value;draw()">${[['admin','Admin'],['mozo','Mozo'],['cocina','Cocina']].map(o=>`<option value="${o[0]}" ${vista==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:''}${ONLINE?`${user=='admin'?`<button onclick="cambiarClave()" title="Mi clave">🔑<span class="hm"> Mi clave</span></button>`:''}${avisosOn?'':`<button onclick="activarAvisos()" title="Activar avisos">🔔<span class="hm"> Activar avisos</span></button>`}${user!='admin'?`<button onclick="cambiarNombre()" title="Cambiar nombre">👤 ${esc(myName)}</button>`:''}<button onclick="salir()">Salir</button>`:`<button onclick="user=null;draw()">Cambiar perfil</button>`}</div>${isPract()?`<div class="pract"><b>🎓 MODO PRÁCTICA</b><span>${S.practica?'Los pedidos que se hagan ahora son de prueba y no cuentan en reportes ni en caja.':'Estás practicando: tus pedidos son de prueba, no cuentan y cocina no los ve. Usa “🎓 Simular cocina” para avanzarlos.'}</span>${user=='admin'&&S.practica?'<button onclick="setPractica(false)">Desactivar</button>':''}</div>`:''}<div class="wrap">${rv()=='mozo'?mozo():rv()=='cocina'?cocina():admin()}</div>`;
+ $('app').innerHTML=`<div class="top"><b><span class="hm">Restaurante </span>Gina · ${rv()=='admin'?'Admin<span class="hm">istrador</span>':names[rv()]}</b>${instBtn()}${user=='admin'?`<select aria-label="Ir a" onchange="vista=this.value;draw()">${[['admin','Admin'],['mozo','Mozo'],['cocina','Cocina']].map(o=>`<option value="${o[0]}" ${vista==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`:''}${ONLINE?`${user=='admin'?`<button onclick="cambiarClave()" title="Mi clave">🔑<span class="hm"> Mi clave</span></button>`:''}${avisosOn?'':`<button onclick="activarAvisos()" title="Activar avisos">🔔<span class="hm"> Activar avisos</span></button>`}${user!='admin'?`<button onclick="cambiarNombre()" title="Cambiar nombre">👤 ${esc(myName)}</button>`:''}<button onclick="salir()">Salir</button>`:`<button onclick="user=null;draw()">Cambiar perfil</button>`}</div>${isPract()?`<div class="pract"><b>🎓 MODO PRÁCTICA</b><span>${S.practica?'Los pedidos que se hagan ahora son de prueba y no cuentan en reportes ni en caja.':'Estás practicando: tus pedidos son de prueba, no cuentan y cocina no los ve. Usa “🎓 Simular cocina” para avanzarlos.'}</span>${user=='admin'&&S.practica?'<button onclick="setPractica(false)">Desactivar</button>':''}</div>`:''}<div class="wrap">${rv()=='mozo'?mozo():rv()=='cocina'?cocina():admin()}</div>`;
 
  if(zoomCart&&rv()=='mozo'&&mtab=='pedir')renderZoom();
  if(busF){const i=$('busq');if(i){i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}}busF=false}
